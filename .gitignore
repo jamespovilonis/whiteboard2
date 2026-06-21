@@ -1,0 +1,34 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+server.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Model weights (large binary files)
+model_weights
+server/model_weights
+
+# PyTorch checkpoints (.pth files are large model weights)
+*.pth
+
+# Generated files
+result.zip
+server/result.zip
+
+# Node (if ever used)
+node_modules/

@@ -1,0 +1,12 @@
+# Terminal Execution Rules
+
+1. NEVER pipe python or test execution commands into `tail`, `head`, `less`, or log-limiting utilities (e.g., `2>&1 | tail -20`). This causes output buffering, blinds your context window, and leads to infinite execution loops.
+2. ALWAYS execute python scripts and inline snippets natively so that standard output (stdout) and standard error (stderr) streams stream to the terminal in real time.
+3. When writing one-off inline python strings (`python3 -c "..."`), always include `flush=True` in print statements to ensure the terminal outputs progress instantly.
+4. If a script appears to take a long time (such as loading PyTorch or machine learning models), write brief, incremental status print statements so progress can be monitored.
+
+# Background Processes & Long-Running Servers
+
+1. When launching a background process or server using `&` or `nohup`, ALWAYS disconnect standard input by adding `< /dev/null` at the end of the background statement. (Example: `nohup python3 server.py > server.log 2>&1 < /dev/null &`). If you omit `< /dev/null`, the terminal session will hang indefinitely.
+2. NEVER assume a background server is running successfully just because it echoed a Process ID (PID). 
+3. ALWAYS verify your background tasks. Immediately after launching a background process, chain a sleep command followed by a log check or process check (e.g., `& sleep 2 && cat /tmp/server.log` or `curl localhost:port`). This ensures you catch immediate startup crashes (like port-in-use or missing dependencies) instead of looping.

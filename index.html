@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" defer></script>
+    <script src="StrokeDataSaver.js" defer></script>
+    <script src="IdentifyLine.js" defer></script>
+    <script src="HandwritingToLatex/LinesRasterizer.js" defer></script>
+    <script src="functionality/StrokeSmoother.js" defer></script>
+    <script src="functionality/PenSizeColor.js" defer></script>
+    <script src="functionality/PenStroke.js" defer></script>
+    <script src="functionality/Eraser.js" defer></script>
+    <script src="HandwritingToLatex/LatexPredictor.js" defer></script>
+</head>
+<body>
+    <div class="main-layout">
+        <div class="canvas-container">
+            <canvas id="whiteboard-bg"></canvas>
+            <canvas id="whiteboard"></canvas>
+            <div class="toolbar" role="toolbar" aria-label="Drawing tools">
+                <span class="toolbar-toggle" aria-hidden="true"><img src="icons/pencil.png" alt="" class="tool-icon"></span>
+                <div class="toolbar-content">
+                    <button id="mouse" class="tool-btn" title="Mouse (M)" aria-label="Pan tool"><img src="icons/cursor.png" alt="Pan tool" class="tool-icon"></button>
+                    <button id="pen" class="tool-btn active" title="Pen (P)" aria-label="Pen tool"><img src="icons/pencil.png" alt="Pen tool" class="tool-icon"></button>
+                    <button id="eraser" class="tool-btn" title="Eraser (E)" aria-label="Eraser tool"><img src="icons/eraser.png" alt="Eraser tool" class="tool-icon"></button>
+                    <button id="recognize" class="tool-btn recognize-btn" title="Recognize (T)" aria-label="Recognize handwriting">
+                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M9 11l3 3L22 4"></path>
+                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+                        </svg>
+                    </button>
+                    <div class="toolbar-divider" role="separator"></div>
+                    <div class="color-picker-wrap" title="Color" aria-label="Stroke color">
+                        <button class="color-btn" style="background:#000000" aria-label="Change color"></button>
+                        <div class="color-picker-dropdown">
+                            <div class="color-swatch swatch-black active" data-color="#000000" style="background:#000000"></div>
+                            <div class="color-swatch swatch-dark" data-color="#333333" style="background:#333333"></div>
+                            <div class="color-swatch swatch-gray" data-color="#888888" style="background:#888888"></div>
+                            <div class="color-swatch swatch-white" data-color="#ffffff" style="background:#ffffff"></div>
+                            <div class="color-swatch swatch-red" data-color="#e53935" style="background:#e53935"></div>
+                            <div class="color-swatch swatch-orange" data-color="#fb8c00" style="background:#fb8c00"></div>
+                            <div class="color-swatch swatch-yellow" data-color="#fdd835" style="background:#fdd835"></div>
+                            <div class="color-swatch swatch-green" data-color="#43a047" style="background:#43a047"></div>
+                            <div class="color-swatch swatch-cyan" data-color="#00acc1" style="background:#00acc1"></div>
+                            <div class="color-swatch swatch-blue" data-color="#1e88e5" style="background:#1e88e5"></div>
+                            <div class="color-swatch swatch-purple" data-color="#8e24aa" style="background:#8e24aa"></div>
+                            <div class="color-swatch swatch-pink" data-color="#d81b60" style="background:#d81b60"></div>
+                        </div>
+                    </div>
+                    <input type="range" id="sizePicker" min="1" max="10" value="4" title="Brush size" aria-label="Brush size">
+                    <span id="sizeValue" aria-live="polite">9</span>
+                    <div class="server-status-group">
+                        <div class="server-status-row">
+                            <span class="server-label">CoMER</span>
+                            <div id="serverStatus-comer" class="server-status" title="CoMER server: offline"></div>
+                        </div>
+                        <div class="server-status-row">
+                            <span class="server-label">SAN</span>
+                            <div id="serverStatus-san" class="server-status" title="SAN server: offline"></div>
+                        </div>
+                        <div class="server-status-row">
+                            <span class="server-label">CAN</span>
+                            <div id="serverStatus-can" class="server-status" title="CAN server: offline"></div>
+                        </div>
+                    </div>
+                    <div class="toolbar-divider" role="separator"></div>
+                    <button id="clearBtn" class="tool-btn" title="Clear all (Shift+C)" aria-label="Clear all">
+                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                        </svg>
+                    </button>
+                    <button id="undoBtn" class="tool-btn" title="Undo (Ctrl+Z)" aria-label="Undo last stroke">
+                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.51 15a9 9 0 102.13-9.36L1 10"></path>
+                        </svg>
+                    </button>
+                    <button id="redoBtn" class="tool-btn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo last undo">
+                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"></path>
+                        </svg>
+                    </button>
+                    <button id="exportBtn" class="tool-btn" title="Export PNG (Shift+E)" aria-label="Export canvas as PNG">
+                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="prediction-panel" class="prediction-panel"></div>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script>
+        // Wire up the recognize button to call LatexPredictor.recognize()
+        document.addEventListener('DOMContentLoaded', function () {
+            // Keyboard shortcuts
+            var ignoredTag = function () {
+                var tag = (document.activeElement && document.activeElement.tagName) || '';
+                return tag === 'INPUT' || tag === 'TEXTAREA';
+            };
+
+            document.addEventListener('keydown', function (e) {
+                // Pen: P
+                if ((e.key === 'p' || e.key === 'P') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    if (ignoredTag()) return;
+                    e.preventDefault();
+                    var penBtn = document.getElementById('pen');
+                    if (penBtn && !penBtn.classList.contains('active')) {
+                        penBtn.click();
+                    }
+                }
+                // Mouse: M (pan tool — currently a no-op)
+                if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    if (ignoredTag()) return;
+                    e.preventDefault();
+                    var mouseBtn = document.getElementById('mouse');
+                    if (mouseBtn && !mouseBtn.classList.contains('active')) {
+                        // For now, just deactivate pen/eraser
+                        var penBtn = document.getElementById('pen');
+                        var eraserBtn = document.getElementById('eraser');
+                        if (penBtn) penBtn.classList.remove('active');
+                        if (eraserBtn) eraserBtn.classList.remove('active');
+                        mouseBtn.classList.add('active');
+                        var canvas = document.getElementById('whiteboard');
+                        if (canvas) canvas.style.cursor = 'grab';
+                        showToast('Pan tool selected (not yet implemented)');
+                    }
+                }
+                // Recognize: T
+                if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    if (ignoredTag()) return;
+                    e.preventDefault();
+                    if (typeof LatexPredictor !== 'undefined') {
+                        LatexPredictor.recognize();
+                    }
+                }
+                // Clear: Shift+C
+                if ((e.key === 'c' || e.key === 'C') && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    if (ignoredTag()) return;
+                    e.preventDefault();
+                    if (typeof window.clearAllStrokes === 'function') {
+                        window.clearAllStrokes();
+                    }
+                }
+                // Export: Shift+E
+                if ((e.key === 'e' || e.key === 'E') && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    if (ignoredTag()) return;
+                    e.preventDefault();
+                    if (typeof window.exportCanvasPNG === 'function') {
+                        window.exportCanvasPNG();
+                    }
+                }
+            });
+
+            // ---- Toolbar button wiring ----
+            var recognizeBtn = document.getElementById('recognize');
+            if (recognizeBtn) {
+                recognizeBtn.addEventListener('click', function () {
+                    LatexPredictor.recognize();
+                });
+            }
+
+            var clearBtn = document.getElementById('clearBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (typeof window.clearAllStrokes === 'function') {
+                        window.clearAllStrokes();
+                    }
+                });
+            }
+
+            var undoBtn = document.getElementById('undoBtn');
+            if (undoBtn) {
+                undoBtn.addEventListener('click', function () {
+                    if (typeof window.undoStroke === 'function') window.undoStroke();
+                });
+            }
+
+            var redoBtn = document.getElementById('redoBtn');
+            if (redoBtn) {
+                redoBtn.addEventListener('click', function () {
+                    if (typeof window.redoStroke === 'function') window.redoStroke();
+                });
+            }
+
+            var exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', function () {
+                    if (typeof window.exportCanvasPNG === 'function') {
+                        window.exportCanvasPNG();
+                    }
+                });
+            }
+        });
+
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            toast.className = 'toast show';
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(function () {
+                toast.style.display = 'none';
+                toast.className = 'toast';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
