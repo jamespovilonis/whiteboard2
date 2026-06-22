@@ -58,7 +58,7 @@ var IdentifyLine = (function () {
    * Compute the expanded bbox for a set of strokes.
    * Expansion is proportional to the combined bounding box of those strokes:
    *   - Horizontal: ±50% of width
-   *   - Vertical: ±10% of height
+   *   - Vertical: ±15% of height
    */
   function computeExpandedBbox(strokes) {
     if (!strokes || strokes.length === 0) return null;
@@ -78,7 +78,7 @@ var IdentifyLine = (function () {
 
     // Proportional catchment zones
     var hPad = width * 0.5;
-    var vPad = Math.max(height * 0.1, 10); // minimum 10px vertical padding for visibility
+    var vPad = Math.max(height * 0.15, 10); // minimum 10px vertical padding for visibility
 
     return {
       xMin: xMin - hPad,

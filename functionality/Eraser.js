@@ -192,6 +192,15 @@ function performErase() {
     }
     strokeSaver.removeStrokes(toRemove);
     window.redrawAllStrokes();
+
+    // Re-group lines and re-rasterize to reflect the removed strokes
+    if (typeof IdentifyLine !== "undefined") {
+      IdentifyLine.groupStrokesIntoLines();
+    }
+    if (typeof LinesRasterizer !== "undefined") {
+      LinesRasterizer.clearCache();
+      LinesRasterizer.rasterizeAllLines();
+    }
   }
 }
 

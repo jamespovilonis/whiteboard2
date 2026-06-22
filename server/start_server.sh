@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start the CoMER handwriting recognition API server.
+# Start the unified handwriting recognition API server (CoMER + SAN + CAN).
 # Run this from the server/ directory.
 # The server will listen on http://0.0.0.0:8000
 
@@ -18,6 +18,6 @@ elif [ -d ".venv" ]; then
     source .venv/bin/activate
 fi
 
-echo "Starting CoMER HWR API server on http://0.0.0.0:8000 ..."
+echo "Starting Unified HWR API server (CoMER + SAN + CAN) on http://0.0.0.0:8000 ..."
 echo "To start: cd server && bash start_server.sh"
 python server.py

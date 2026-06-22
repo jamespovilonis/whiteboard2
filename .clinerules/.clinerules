@@ -10,3 +10,24 @@
 1. When launching a background process or server using `&` or `nohup`, ALWAYS disconnect standard input by adding `< /dev/null` at the end of the background statement. (Example: `nohup python3 server.py > server.log 2>&1 < /dev/null &`). If you omit `< /dev/null`, the terminal session will hang indefinitely.
 2. NEVER assume a background server is running successfully just because it echoed a Process ID (PID). 
 3. ALWAYS verify your background tasks. Immediately after launching a background process, chain a sleep command followed by a log check or process check (e.g., `& sleep 2 && cat /tmp/server.log` or `curl localhost:port`). This ensures you catch immediate startup crashes (like port-in-use or missing dependencies) instead of looping.
+
+# Script Execution & Inline Code Rules
+
+1. NEVER execute multi-line Python code blocks directly in the terminal using `python3 -c "..."`. Multi-line strings break pseudo-terminal (pty) quote parsing, leaving the shell hanging indefinitely waiting for closing inputs.
+2. ALWAYS write any Python script longer than a single line to a temporary file (e.g., `temp_test.py`), execute that file directly (`python3 temp_test.py`), and delete it immediately afterward.
+3. Single-line `-c` execution is allowed ONLY for simple imports or version checks (e.g., `python3 -c "import torch; print(torch.__version__)"`).
+
+# Verification & Testing Rules
+
+1. NEVER assume code works without empirical proof. Simply checking that a file saved or that "the logic looks sound" is insufficient. Every code change must be validated by running a test script, compiling, or executing a dry-run pass.
+2. ALWAYS execute targeted testing before claiming a task is complete. If you modify a specific function or module, write or run an isolated test script targeting that exact logic to verify both success states and edge cases (e.g., empty inputs, malformed structures).
+3. Do not rely solely on unit tests; perform an integration check. After confirming that an isolated fix works, run a brief end-to-end or integration pass (e.g., running the actual server file briefly or hitting the specific API endpoint) to ensure your changes didn't break downstream modules.
+4. When writing inline test snippets, explicitly print the expected vs. actual outcomes. Do not just print "Done". Print clear, comparative debugging statements (e.g., `print(f"Expected: {expected} | Got: {actual}")`) so the output in the terminal provides undeniable evidence of correctness.
+5. If a test fails, you must read the traceback completely. Never blindly re-run the same execution command hoping for a different result. Inspect the stack trace, locate the exact file and line number causing the failure, modify the implementation, and then re-test.
+6. Keep the workspace clean. If you create temporary mock files, dummy images, or scratchpad text files to verify a feature, you must delete them before declaring the task finished. Do not leave temporary artifacts in the repository.
+
+# Tool Execution & Format Compliance
+
+1. You are running on a local inference engine. You must be precise with tool syntax to avoid triggering system capability warnings.
+2. ALWAYS provide every required parameter for a tool call. For example, when using `read_file` or `write_to_file`, never omit the `path` argument or leave it blank.
+3. strictly adhere to the exact XML/JSON formatting schemas required by the system. Do not improvise, truncate, or omit closing tags in your tool blocks.

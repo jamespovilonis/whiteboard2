@@ -114,18 +114,29 @@ async def lifespan(app: FastAPI):
         yield
         return
 
+    # Monkey-patch torch.load: PyTorch 2.6 defaults weights_only=True,
+    # which blocks Lightning's internal checkpoint globals. Force
+    # weights_only=False for the duration of model loading.
+    _original_torch_load = torch.load
+    def _patched_torch_load(*args, **kwargs):
+        kwargs["weights_only"] = False
+        return _original_torch_load(*args, **kwargs)
+    torch.load = _patched_torch_load
+
     logger.info(f"Loading checkpoint from {ckpt_path} ...")
     try:
         model = LitCoMER.load_from_checkpoint(
             str(ckpt_path),
             map_location=device,
-            weights_only=False,
         )
     except Exception as exc:
         logger.exception("Failed to load model checkpoint")
         model = None
+        torch.load = _original_torch_load
         yield
         return
+    finally:
+        torch.load = _original_torch_load
 
     model.eval()
     model.to(device)

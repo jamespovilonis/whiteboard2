@@ -27,7 +27,43 @@ from PIL import Image
 CAN_DIR = str(Path(__file__).resolve().parent / "CAN-main")
 sys.path.insert(0, CAN_DIR)
 
-from models.infer_model import Inference
+# Load models/ submodules via importlib to bypass models/__init__.py,
+# which would otherwise trigger a chain of imports (decoder → counting_utils
+# → matplotlib) that are not needed for inference.
+import importlib.util as _ilutil
+
+def _load_module_direct(name, relpath):
+    """Load a .py file as a module, bypassing package __init__.py."""
+    spec = _ilutil.spec_from_file_location(name, str(Path(CAN_DIR) / relpath))
+    mod = _ilutil.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+# decoder.py has a top-level `from counting_utils import gen_counting_label`
+# which pulls in matplotlib.  Provide a dummy counting_utils module so that
+# decoder.py can load without heavyweight training-only dependencies.
+import types as _types
+_dummy_cu = _types.ModuleType("counting_utils")
+def _dummy_gen_counting_label(labels, channel, tag):
+    # Return a zero tensor with shape (batch, channel) so that
+    # infer_model.forward() can compute loss without crashing.
+    # The loss value is discarded during inference.
+    b = labels.size(0)
+    return torch.zeros((b, channel), device=labels.device)
+_dummy_cu.gen_counting_label = _dummy_gen_counting_label
+sys.modules["counting_utils"] = _dummy_cu
+
+_models_densenet = _load_module_direct("models.densenet", "models/densenet.py")
+_models_attention = _load_module_direct("models.attention", "models/attention.py")
+_models_decoder = _load_module_direct("models.decoder", "models/decoder.py")
+_models_counting = _load_module_direct("models.counting", "models/counting.py")
+
+# Now load infer_model — its "from models.xxx import ..." will find the
+# pre-loaded modules in sys.modules and skip models/__init__.py.
+_infer_mod = _load_module_direct("models.infer_model", "models/infer_model.py")
+Inference = _infer_mod.Inference
+
 from dataset import Words
 from utils import load_checkpoint
 

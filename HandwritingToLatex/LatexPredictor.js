@@ -1,18 +1,29 @@
-// LatexPredictor.js - Rasterizes handwritten lines and sends them to the CoMER, SAN, and CAN servers
-// for recognition, then displays predicted LaTeX with candidate lists and confidence scores.
+// LatexPredictor.js - Rasterizes handwritten lines and sends them to a single unified server
+// for recognition (CoMER, SAN, or CAN), then displays predicted LaTeX with candidate lists
+// and confidence scores.
 
 var LatexPredictor = (function () {
-  var SERVER_URLS = {
-    comer: "http://localhost:8000",
-    san: "http://localhost:8001",
-    can: "http://localhost:8002"
-  };
+  // ── Configurable server URL ────────────────────────────────────────
+  var _serverUrl = "http://localhost:8000";
+
+  function setServerUrl(url) {
+    _serverUrl = url;
+  }
+
   var _predictionPanel = null;
   var _statusDots = { comer: null, san: null, can: null };
   var _serverHealthOk = { comer: false, san: false, can: false };
   var _recognizing = false; // guard against concurrent recognitions
 
+  // Debounce cooldown (ms) — rapid clicks coalesce into one recognition
+  var _lastRecognizeTime = 0;
+  var DEBOUNCE_MS = 500;
+
   // ── Public API ──────────────────────────────────────────────────────
+
+  function setServerUrl(url) {
+    _serverUrl = url;
+  }
 
   /**
    * Initialize references to DOM elements. Call once on load.
@@ -39,6 +50,11 @@ var LatexPredictor = (function () {
    * Main recognition entry point. Called from the recognize button click handler.
    */
   function recognize() {
+    // Debounce: ignore rapid clicks within cooldown window
+    var now = Date.now();
+    if (now - _lastRecognizeTime < DEBOUNCE_MS) return;
+    _lastRecognizeTime = now;
+
     if (_recognizing) {
       showToast("Already recognizing...", false);
       return;
@@ -136,12 +152,11 @@ var LatexPredictor = (function () {
   }
 
   function checkServerHealth(name) {
-    var url = SERVER_URLS[name] + "/health";
-    fetch(url, { method: "GET" })
+    fetch(_serverUrl + "/health?model=" + name, { method: "GET" })
       .then(function (resp) { return resp.json(); })
-      .then(function () {
-        _serverHealthOk[name] = true;
-        updateStatusDot(name, true);
+      .then(function (data) {
+        _serverHealthOk[name] = data.loaded !== false;
+        updateStatusDot(name, _serverHealthOk[name]);
       })
       .catch(function () {
         _serverHealthOk[name] = false;
@@ -161,13 +176,13 @@ var LatexPredictor = (function () {
     }
   }
 
-  // ── Send one line to the servers ────────────────────────────────────
+  // ── Send one line to all three models on the unified server ──────────
 
   function sendLineToServers(lineData, lineIndex) {
     var dataUrl = lineData.dataUrl;
     if (!dataUrl) {
       console.error("Line " + lineIndex + ": empty dataUrl, skipping");
-      renderRow(lineIndex, { comer: null, san: null });
+      renderRow(lineIndex, { comer: null, san: null, can: null });
       return Promise.resolve(null);
     }
 
@@ -178,9 +193,10 @@ var LatexPredictor = (function () {
           throw new Error("Rasterized image is empty (0 bytes)");
         }
 
-        var comerPromise = sendToServer("comer", blob, lineIndex);
-        var sanPromise = sendToServer("san", blob, lineIndex);
-        var canPromise = sendToServer("can", blob, lineIndex);
+        // Send to all three models in parallel on the unified server
+        var comerPromise = sendToModel("comer", blob, lineIndex);
+        var sanPromise = sendToModel("san", blob, lineIndex);
+        var canPromise = sendToModel("can", blob, lineIndex);
 
         return Promise.all([comerPromise, sanPromise, canPromise]).then(function (results) {
           renderRow(lineIndex, {
@@ -198,86 +214,50 @@ var LatexPredictor = (function () {
   }
 
   /**
-   * Send image to a single server and return a result object:
-   *   { latex: string, candidates: [{latex, score, log_prob?}], confidence: number }
-   * or null on failure / server offline.
+   * Send image to the unified server with ?model=comer|san|can param.
+   * Returns { latex, candidates: [{latex, score, confidence}], model }
+   * or null on failure / model not loaded.
    */
-  function sendToServer(serverName, blob, lineIndex) {
-    if (!isServerOnline(serverName)) {
+  function sendToModel(modelName, blob, lineIndex) {
+    if (!isServerOnline(modelName)) {
       return Promise.resolve(null);
     }
 
     var formData = new FormData();
     formData.append("file", blob, "line_" + lineIndex + ".png");
 
-    return fetch(SERVER_URLS[serverName] + "/recognize", { method: "POST", body: formData })
+    return fetch(_serverUrl + "/recognize?model=" + modelName, { method: "POST", body: formData })
       .then(function (resp) {
         if (!resp.ok) {
-          console.warn(serverName + " responded with status " + resp.status);
+          console.warn(modelName + " responded with status " + resp.status);
           return null;
         }
         return resp.json();
       })
       .then(function (data) {
-        if (!data) return null;
+        if (!data || !data.top) return null;
 
-        var latex = "";
-        if (data.top && data.top.latex) {
-          latex = data.top.latex;
-        } else if (data.candidates && data.candidates.length > 0) {
-          latex = data.candidates[0].latex;
-        }
-
-        if (!latex) return null;
-
+        var latex = data.top.latex || "";
         var candidates = data.candidates || [];
-        var confidence = computeConfidence(candidates);
+
+        // Add model field to each candidate so frontend knows which model produced it
+        for (var i = 0; i < candidates.length; i++) {
+          if (!candidates[i].model) {
+            candidates[i].model = modelName;
+          }
+        }
 
         return {
           latex: latex,
           candidates: candidates,
-          confidence: confidence
+          confidence: data.top.confidence !== undefined ? data.top.confidence : 0,
+          model: modelName
         };
       })
       .catch(function (err) {
-        console.error(serverName + " recognition failed:", err);
+        console.error(modelName + " recognition failed:", err);
         return null;
       });
-  }
-
-  /**
-   * Compute a [0,1] confidence for the top candidate.
-   *
-   * For CoMER (beam search): scores are length-normalized log-probs.
-   *   We softmax over the displayed candidates' scores to get the top
-   *   candidate's relative probability mass.
-   *
-   * For SAN (greedy): the score is already a per-step geometric-mean
-   *   probability in [0,1]. No transformation needed.
-   */
-  function computeConfidence(candidates) {
-    if (!candidates || candidates.length === 0) return 0;
-
-    // If there is only one candidate, check if its score is already in [0,1].
-    // SAN uses greedy decoding with per-step confidence, so scores are
-    // already probabilities in (0,1].
-    if (candidates.length === 1) {
-      var s = candidates[0].score;
-      if (typeof s === "number" && s >= 0 && s <= 1) {
-        return s;
-      }
-      // Fallback: single CoMER candidate → always 1.0
-      return 1.0;
-    }
-
-    // Multi-candidate beam search (CoMER): scores are log-probs.
-    // Softmax over the displayed candidates to get relative probability.
-    var scores = candidates.map(function (c) { return c.score; });
-    var maxScore = Math.max.apply(null, scores);
-    var exps = scores.map(function (s) { return Math.exp(s - maxScore); });
-    var sumExps = exps.reduce(function (a, b) { return a + b; }, 0);
-    if (sumExps <= 0) return 1.0 / candidates.length;
-    return exps[0] / sumExps;
   }
 
   // ── Render predictions in the right panel ───────────────────────────
@@ -476,7 +456,7 @@ var LatexPredictor = (function () {
           scoreSpan.textContent = (cand.score * 100).toFixed(1) + "%";
           scoreSpan.title = "Per-step confidence";
         } else {
-          scoreSpan.textContent = "—";
+          scoreSpan.textContent = "\u2014";
         }
         candRow.appendChild(scoreSpan);
 
@@ -506,7 +486,7 @@ var LatexPredictor = (function () {
           var spacer2 = document.createElement("span");
           spacer2.className = "candidate-prob-pct";
           spacer2.style.opacity = "0";
-          spacer2.textContent = "—";
+          spacer2.textContent = "\u2014";
           candRow.appendChild(spacer2);
         }
 
@@ -588,6 +568,7 @@ var LatexPredictor = (function () {
     recognize: recognize,
     checkServerHealth: checkServerHealth,
     clearPredictions: clearPredictions,
-    init: init
+    init: init,
+    setServerUrl: setServerUrl
   };
 })();
