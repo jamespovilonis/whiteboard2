@@ -69,6 +69,10 @@ function undoStroke() {
     LinesRasterizer.clearCache();
     LinesRasterizer.rasterizeAllLines();
   }
+  if (typeof RealtimeRecognitionScheduler !== "undefined") {
+    RealtimeRecognitionScheduler.resetRecognizedCache();
+    RealtimeRecognitionScheduler.notifyStrokeChange("undo");
+  }
 }
 
 /**
@@ -94,6 +98,10 @@ function redoStroke() {
   if (typeof LinesRasterizer !== "undefined") {
     LinesRasterizer.clearCache();
     LinesRasterizer.rasterizeAllLines();
+  }
+  if (typeof RealtimeRecognitionScheduler !== "undefined") {
+    RealtimeRecognitionScheduler.resetRecognizedCache();
+    RealtimeRecognitionScheduler.notifyStrokeChange("redo");
   }
 }
 
@@ -239,6 +247,9 @@ function finalizeCurrentStroke() {
   if (typeof IdentifyLine !== "undefined") {
     IdentifyLine.finalizeStroke();
   }
+  if (typeof RealtimeRecognitionScheduler !== "undefined") {
+    RealtimeRecognitionScheduler.notifyStrokeChange("pen");
+  }
   isDrawing = false;
   rawPoints = [];
 }
@@ -282,6 +293,10 @@ window.clearAllStrokes = function () {
   if (typeof LinesRasterizer !== "undefined") {
     LinesRasterizer.clearCache();
     LinesRasterizer.rasterizeAllLines();
+  }
+  if (typeof RealtimeRecognitionScheduler !== "undefined") {
+    RealtimeRecognitionScheduler.resetRecognizedCache();
+    RealtimeRecognitionScheduler.notifyStrokeChange("clear");
   }
   showToastFn("Canvas cleared");
 };

@@ -456,11 +456,11 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
 }
 
 .prediction-panel.active {
-    flex: 0 0 900px;
-    width: auto;
-    min-width: 700px;
-    max-width: 1000px;
-    padding: 20px 18px;
+    flex: 0 0 clamp(320px, 25vw, 380px);
+    width: clamp(320px, 25vw, 380px);
+    min-width: 320px;
+    max-width: 380px;
+    padding: 14px 12px;
     border-left: 1px solid rgba(0, 0, 0, 0.08);
     opacity: 1;
     pointer-events: auto;
@@ -472,6 +472,40 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
     font-size: 14px;
     padding: 40px 16px;
     line-height: 1.6;
+}
+
+.prediction-welcome {
+    margin: auto 0;
+    padding: 24px 10px;
+}
+
+.prediction-welcome-title {
+    color: #303038;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.prediction-welcome-hint {
+    margin-top: 6px;
+}
+
+.prediction-model-placeholders {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 16px;
+}
+
+.prediction-model-placeholder {
+    padding: 8px 4px;
+    border: 1px solid rgba(94, 92, 230, 0.12);
+    border-radius: 7px;
+    background: rgba(94, 92, 230, 0.06);
+    color: #5e5ce6;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
 }
 
 /* Each prediction row */
@@ -546,7 +580,7 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
 
 .prediction-columns {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 8px;
     margin-top: 4px;
     min-width: 0;
@@ -594,6 +628,14 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
 .prediction-col .prediction-latex {
     font-size: 22px;
     min-height: 28px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+}
+
+.prediction-col .prediction-latex .katex-display {
+    margin: 0.35em 0;
+    text-align: left;
 }
 
 .prediction-col .prediction-raw {
@@ -718,4 +760,3 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
 }
 
 /* Relative probability bar — removed */
-

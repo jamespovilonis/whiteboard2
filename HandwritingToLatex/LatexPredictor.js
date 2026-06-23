@@ -11,6 +11,7 @@ var LatexPredictor = (function () {
   var _statusDots = { comer: null, san: null, can: null };
   var _serverHealthOk = { comer: false, san: false, can: false };
   var _recognizing = false; // guard against concurrent recognitions
+  var _enabledModels = ["comer", "san", "can"];
 
   // Debounce cooldown (ms) — rapid clicks coalesce into one recognition
   var _lastRecognizeTime = 0;
@@ -22,6 +23,42 @@ var LatexPredictor = (function () {
     _serverUrl = url;
   }
 
+  function setEnabledModels(models) {
+    _enabledModels = normalizeModels(models || ["comer", "san", "can"]);
+    if (_predictionPanel && !_predictionPanel.querySelector(".prediction-row")) {
+      renderEmptyState();
+    }
+  }
+
+  function renderEmptyState() {
+    if (!_predictionPanel) return;
+
+    _predictionPanel.innerHTML = "";
+    var emptyState = document.createElement("div");
+    emptyState.className = "prediction-panel-empty prediction-welcome";
+
+    var title = document.createElement("div");
+    title.className = "prediction-welcome-title";
+    title.textContent = "Model predictions";
+    emptyState.appendChild(title);
+
+    var hint = document.createElement("div");
+    hint.className = "prediction-welcome-hint";
+    hint.textContent = "Write an equation to see live results.";
+    emptyState.appendChild(hint);
+
+    var models = document.createElement("div");
+    models.className = "prediction-model-placeholders";
+    for (var i = 0; i < _enabledModels.length; i++) {
+      var model = document.createElement("div");
+      model.className = "prediction-model-placeholder";
+      model.textContent = _enabledModels[i];
+      models.appendChild(model);
+    }
+    emptyState.appendChild(models);
+    _predictionPanel.appendChild(emptyState);
+  }
+
   /**
    * Initialize references to DOM elements. Call once on load.
    */
@@ -31,8 +68,8 @@ var LatexPredictor = (function () {
     _statusDots.san = document.getElementById("serverStatus-san");
     _statusDots.can = document.getElementById("serverStatus-can");
     if (_predictionPanel) {
-      _predictionPanel.innerHTML = "";
-      _predictionPanel.classList.remove("active");
+      _predictionPanel.classList.add("active");
+      renderEmptyState();
     }
     // Do an initial health check right away
     checkServerHealth("comer");
@@ -66,8 +103,12 @@ var LatexPredictor = (function () {
     }
 
     // Check server health first
-    if (!isServerOnline("comer") && !isServerOnline("san") && !isServerOnline("can")) {
-      showToast("All servers are offline. Start them first.", true);
+    var hasOnlineEnabledModel = false;
+    for (var h = 0; h < _enabledModels.length; h++) {
+      if (isServerOnline(_enabledModels[h])) hasOnlineEnabledModel = true;
+    }
+    if (!hasOnlineEnabledModel) {
+      showToast("Configured recognition models are offline. Start the model server first.", true);
       return;
     }
 
@@ -98,7 +139,10 @@ var LatexPredictor = (function () {
     _predictionPanel.appendChild(emptyMsg);
 
     // Process lines with a concurrency limit of 2 to avoid overwhelming the CPU-bound models
-    var promises = processWithConcurrency(lines, 2);
+    var promises = processWithConcurrency(lines, 2, {
+      models: _enabledModels,
+      replaceExisting: false
+    });
 
     Promise.all(promises).then(function () {
       // Remove placeholder after all done
@@ -117,7 +161,8 @@ var LatexPredictor = (function () {
   /**
    * Process an array of line recognition tasks with a concurrency limit.
    */
-  function processWithConcurrency(lines, limit) {
+  function processWithConcurrency(lines, limit, options) {
+    options = options || {};
     var nextIdx = 0;
     var total = lines.length;
 
@@ -129,7 +174,8 @@ var LatexPredictor = (function () {
             resolve();
             return;
           }
-          sendLineToServers(lines[i], i).then(function () {
+          var lineIndex = lines[i].lineIndex !== undefined ? lines[i].lineIndex : i;
+          sendLineToServers(lines[i], lineIndex, options).then(function () {
             step();
           }).catch(function (err) {
             console.error("Line " + i + " failed, continuing:", err);
@@ -181,11 +227,35 @@ var LatexPredictor = (function () {
 
   // ── Send one line to all three models on the unified server ──────────
 
-  function sendLineToServers(lineData, lineIndex) {
+  function normalizeModels(models) {
+    if (!models || models.length === 0) return ["comer", "san", "can"];
+    var out = [];
+    for (var i = 0; i < models.length; i++) {
+      if (models[i] === "comer" || models[i] === "san" || models[i] === "can") {
+        out.push(models[i]);
+      }
+    }
+    return out.length > 0 ? out : ["comer", "san", "can"];
+  }
+
+  function emptyPredictions() {
+    return { comer: null, san: null, can: null };
+  }
+
+  function sendLineToServers(lineData, lineIndex, options) {
+    options = options || {};
+    var models = normalizeModels(options.models);
+    var renderOptions = {};
+    for (var optKey in options) {
+      if (Object.prototype.hasOwnProperty.call(options, optKey)) {
+        renderOptions[optKey] = options[optKey];
+      }
+    }
+    if (lineData && lineData.signature) renderOptions.signature = lineData.signature;
     var dataUrl = lineData.dataUrl;
     if (!dataUrl) {
       console.error("Line " + lineIndex + ": empty dataUrl, skipping");
-      renderRow(lineIndex, { comer: null, san: null, can: null });
+      renderRow(lineIndex, emptyPredictions(), renderOptions);
       return Promise.resolve(null);
     }
 
@@ -196,24 +266,67 @@ var LatexPredictor = (function () {
           throw new Error("Rasterized image is empty (0 bytes)");
         }
 
-        // Send to all three models in parallel on the unified server
-        var comerPromise = sendToModel("comer", blob, lineIndex);
-        var sanPromise = sendToModel("san", blob, lineIndex);
-        var canPromise = sendToModel("can", blob, lineIndex);
+        var modelPromises = [];
+        for (var m = 0; m < models.length; m++) {
+          modelPromises.push(sendToModel(models[m], blob, lineIndex));
+        }
 
-        return Promise.all([comerPromise, sanPromise, canPromise]).then(function (results) {
-          renderRow(lineIndex, {
-            comer: results[0],
-            san: results[1],
-            can: results[2]
-          });
+        return Promise.all(modelPromises).then(function (results) {
+          var predictions = emptyPredictions();
+          for (var r = 0; r < results.length; r++) {
+            predictions[models[r]] = results[r];
+          }
+          if (typeof renderOptions.shouldRender === "function" &&
+              !renderOptions.shouldRender(lineData, lineIndex, predictions)) {
+            return predictions;
+          }
+          renderRow(lineIndex, predictions, renderOptions);
+          return predictions;
         });
       })
       .catch(function (err) {
         console.error("Line " + lineIndex + " recognition failed:", err);
-        renderRow(lineIndex, { comer: null, san: null, can: null });
+        renderRow(lineIndex, emptyPredictions(), renderOptions);
         return null;
       });
+  }
+
+  function recognizeLines(lines, options) {
+    options = options || {};
+    if (!lines || lines.length === 0) return Promise.resolve([]);
+
+    if (_predictionPanel && options.activatePanel !== false) {
+      _predictionPanel.classList.add("active");
+      if (options.clearPanel) _predictionPanel.innerHTML = "";
+    }
+
+    var limit = options.concurrency || 1;
+    var promises = processWithConcurrency(lines, limit, options);
+    return Promise.all(promises);
+  }
+
+  function renderPendingRow(lineIndex, stage, lineData) {
+    if (!_predictionPanel) return;
+    _predictionPanel.classList.add("active");
+    var emptyState = _predictionPanel.querySelector(".prediction-welcome");
+    if (emptyState) emptyState.parentNode.removeChild(emptyState);
+
+    var row = document.createElement("div");
+    row.className = "prediction-row prediction-pending";
+    row.dataset.lineIndex = lineIndex;
+    if (lineData && lineData.signature) row.dataset.signature = lineData.signature;
+
+    var badge = document.createElement("span");
+    badge.className = "prediction-badge";
+    badge.textContent = "Line " + (lineIndex + 1);
+    row.appendChild(badge);
+
+    var msg = document.createElement("div");
+    msg.className = "prediction-panel-empty realtime-pending-message";
+    msg.textContent = stage || "Checking...";
+    row.appendChild(msg);
+
+    replaceOrAppendRow(row, lineIndex);
   }
 
   /**
@@ -265,12 +378,26 @@ var LatexPredictor = (function () {
 
   // ── Render predictions in the right panel ───────────────────────────
 
-  function renderRow(lineIndex, predictions) {
+  function replaceOrAppendRow(row, lineIndex) {
+    var existing = _predictionPanel.querySelector('.prediction-row[data-line-index="' + lineIndex + '"]');
+    if (existing && existing.parentNode) {
+      existing.parentNode.replaceChild(row, existing);
+    } else {
+      _predictionPanel.appendChild(row);
+    }
+  }
+
+  function renderRow(lineIndex, predictions, options) {
+    options = options || {};
     if (!_predictionPanel) return;
+    var emptyState = _predictionPanel.querySelector(".prediction-welcome");
+    if (emptyState) emptyState.parentNode.removeChild(emptyState);
 
     var row = document.createElement("div");
     row.className = "prediction-row";
     row.dataset.lineIndex = lineIndex;
+    if (options.signature) row.dataset.signature = options.signature;
+    if (options.stage) row.dataset.stage = options.stage;
 
     // Line number badge (full width top)
     var topRow = document.createElement("div");
@@ -307,22 +434,21 @@ var LatexPredictor = (function () {
     // 3-column grid: CoMER | SAN | CAN
     var columnsContainer = document.createElement("div");
     columnsContainer.className = "prediction-columns";
+    columnsContainer.style.gridTemplateColumns = "repeat(" + _enabledModels.length + ", 1fr)";
 
-    // CoMER column
-    var comerCol = createModelColumn("CoMER", predictions.comer);
-    columnsContainer.appendChild(comerCol);
-
-    // SAN column
-    var sanCol = createModelColumn("SAN", predictions.san);
-    columnsContainer.appendChild(sanCol);
-
-    // CAN column
-    var canCol = createModelColumn("CAN", predictions.can);
-    columnsContainer.appendChild(canCol);
+    for (var modelIdx = 0; modelIdx < _enabledModels.length; modelIdx++) {
+      var key = _enabledModels[modelIdx];
+      var labelName = key.charAt(0).toUpperCase() + key.slice(1);
+      columnsContainer.appendChild(createModelColumn(labelName, predictions[key]));
+    }
 
     row.appendChild(columnsContainer);
 
-    _predictionPanel.appendChild(row);
+    if (options.replaceExisting) {
+      replaceOrAppendRow(row, lineIndex);
+    } else {
+      _predictionPanel.appendChild(row);
+    }
   }
 
   function createModelColumn(modelName, result) {
@@ -494,8 +620,8 @@ var LatexPredictor = (function () {
    */
   function clearPredictions() {
     if (_predictionPanel) {
-      _predictionPanel.innerHTML = "";
-      _predictionPanel.classList.remove("active");
+      _predictionPanel.classList.add("active");
+      renderEmptyState();
     }
   }
 
@@ -528,9 +654,13 @@ var LatexPredictor = (function () {
   // ── Public API ──────────────────────────────────────────────────────
   return {
     recognize: recognize,
+    recognizeLines: recognizeLines,
+    sendLineToServers: sendLineToServers,
+    renderPendingRow: renderPendingRow,
     checkServerHealth: checkServerHealth,
     clearPredictions: clearPredictions,
     init: init,
-    setServerUrl: setServerUrl
+    setServerUrl: setServerUrl,
+    setEnabledModels: setEnabledModels
   };
 })();

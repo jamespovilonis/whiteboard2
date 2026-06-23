@@ -203,6 +203,10 @@ function performErase() {
       LinesRasterizer.clearCache();
       LinesRasterizer.rasterizeAllLines();
     }
+    if (typeof RealtimeRecognitionScheduler !== "undefined") {
+      RealtimeRecognitionScheduler.resetRecognizedCache();
+      RealtimeRecognitionScheduler.notifyStrokeChange("erase");
+    }
   }
 }
 

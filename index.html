@@ -15,6 +15,7 @@
     <script src="functionality/PenStroke.js?v=20260622" defer></script>
     <script src="functionality/Eraser.js?v=20260622" defer></script>
     <script src="HandwritingToLatex/LatexPredictor.js?v=20260622" defer></script>
+    <script src="HandwritingToLatex/RealtimeRecognitionScheduler.js?v=20260622" defer></script>
 </head>
 <body>
     <div class="main-layout">
@@ -96,7 +97,7 @@
                 </div>
             </div>
         </div>
-        <div id="prediction-panel" class="prediction-panel"></div>
+        <aside id="prediction-panel" class="prediction-panel active" aria-label="Model predictions"></aside>
     </div>
     <div id="toast" class="toast"></div>
     <script>
@@ -105,17 +106,35 @@
         // 2. Fall back to config.json (local default: http://localhost:8000)
         // 3. Final fallback: http://localhost:8000
         var configuredApiUrl = null;
+        var pendingRuntimeConfig = null;
+
+        function applyRuntimeConfig(cfg) {
+            pendingRuntimeConfig = cfg || {};
+            if (typeof LatexPredictor !== 'undefined') {
+                LatexPredictor.setServerUrl(configuredApiUrl || '');
+                if (pendingRuntimeConfig.recognitionModels) {
+                    LatexPredictor.setEnabledModels(pendingRuntimeConfig.recognitionModels);
+                }
+            }
+            if (typeof RealtimeRecognitionScheduler !== 'undefined' && pendingRuntimeConfig.realTimeRecognition) {
+                RealtimeRecognitionScheduler.configure(pendingRuntimeConfig.realTimeRecognition);
+            }
+            window.dispatchEvent(new CustomEvent('whiteboard:realtime-config', {
+                detail: pendingRuntimeConfig.realTimeRecognition || {}
+            }));
+        }
+
         var urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('apiUrl')) {
             configuredApiUrl = urlParams.get('apiUrl');
-            if (typeof LatexPredictor !== 'undefined') LatexPredictor.setServerUrl(configuredApiUrl);
+            applyRuntimeConfig({});
         } else {
             fetch('config.json')
                 .then(function (r) { return r.json(); })
                 .then(function (cfg) {
                     // Empty string (same-origin) is valid — only fall back if key is missing
                     configuredApiUrl = cfg.apiUrl !== undefined ? cfg.apiUrl : '';
-                    if (typeof LatexPredictor !== 'undefined') LatexPredictor.setServerUrl(configuredApiUrl);
+                    applyRuntimeConfig(cfg);
                 })
                 .catch(function () {
                     // config.json missing — stay with LatexPredictor's default
@@ -124,6 +143,8 @@
 
         // Wire up the recognize button to call LatexPredictor.recognize()
         document.addEventListener('DOMContentLoaded', function () {
+            if (pendingRuntimeConfig) applyRuntimeConfig(pendingRuntimeConfig);
+
             // Keyboard shortcuts
             var ignoredTag = function () {
                 var tag = (document.activeElement && document.activeElement.tagName) || '';

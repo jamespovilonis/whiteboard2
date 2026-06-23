@@ -8,7 +8,7 @@ var LinesRasterizer = (function () {
   var _padding = 20; // px padding around tight bbox of each line
 
   // ── Cache system ───────────────────────────────────────────────────
-  // Key: "lineIndex_totalStrokeCount"
+  // Key: stable per-line signature derived from stroke ids and bbox.
   // Value: { dataUrl, canvasImage }  (cached rasterization result)
   var _cache = {};
 
@@ -25,6 +25,32 @@ var LinesRasterizer = (function () {
       return strokeSaver.getStrokes().length;
     }
     return -1; // sentinel: no strokes available yet
+  }
+
+  function roundForSignature(value) {
+    if (!isFinite(value)) return "?";
+    return Math.round(value * 10) / 10;
+  }
+
+  /**
+   * Compute a content signature for a line group. This is more precise than the
+   * previous global stroke-count cache key and lets real-time recognition skip
+   * unchanged lines on a multi-line board.
+   */
+  function computeLineSignature(group) {
+    if (!group || !group.strokes) return "empty";
+    var ids = [];
+    for (var i = 0; i < group.strokes.length; i++) {
+      ids.push(group.strokes[i].id || ("stroke_" + i));
+    }
+    var b = group.tightBbox || {};
+    var bboxPart = [
+      roundForSignature(b.xMin),
+      roundForSignature(b.yMin),
+      roundForSignature(b.xMax),
+      roundForSignature(b.yMax)
+    ].join(",");
+    return ids.join("|") + "::" + bboxPart;
   }
 
   /**
@@ -127,37 +153,37 @@ var LinesRasterizer = (function () {
 
     if (!groups || groups.length === 0) return _rasterizedLines;
 
-    // Check cache: first line in group always exists and its key stores stroke count
-    var hasCachedFirstLine = _cache["0_strokeCount"] !== undefined;
-
     for (var i = 0; i < groups.length; i++) {
       var group = groups[i];
-      var strokeCount = getStrokeCountKey();
-      var cacheKey = i + "_strokeCount_" + strokeCount;
+      var signature = computeLineSignature(group);
+      var cacheKey = "line_" + signature;
 
       if (_cache[cacheKey]) {
         // Cache hit: use cached rasterization
         var item = _cache[cacheKey];
         item.lineIndex = i;
+        item.lineId = signature;
+        item.signature = signature;
         _rasterizedLines.push(item);
       } else {
         // Cache miss: re-rasterize
         var result = rasterizeLine(group.strokes, group.tightBbox);
         result.lineIndex = i;
+        result.lineId = signature;
+        result.signature = signature;
 
-        // Cache the result using stroke count as version key
+        // Cache the result using per-line content as version key
         _cache[cacheKey] = {
           dataUrl: result.dataUrl,
-          canvasImage: result.canvasImage
+          canvasImage: result.canvasImage,
+          bbox: result.bbox,
+          padding: result.padding,
+          lineId: signature,
+          signature: signature
         };
 
         _rasterizedLines.push(result);
       }
-    }
-
-    // Store the current stroke count in the first line's cache key for validation
-    if (_rasterizedLines.length > 0) {
-      _cache["0_strokeCount"] = strokeCount;
     }
 
     return _rasterizedLines;
@@ -280,6 +306,7 @@ var LinesRasterizer = (function () {
     getRasterizedLines: getRasterizedLines,
     clear: clear,
     clearCache: clearCache,
+    computeLineSignature: computeLineSignature,
     setPadding: setPadding,
     registerAutoRasterize: registerAutoRasterize,
     renderDebugThumbnails: renderDebugThumbnails

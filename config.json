@@ -1,3 +1,12 @@
 {
-  "apiUrl": ""
+  "apiUrl": "",
+  "recognitionModels": ["comer", "san", "can"],
+  "realTimeRecognition": {
+    "enabled": true,
+    "idleDelayMs": 1000,
+    "minRunGapMs": 1200,
+    "maxConcurrentLines": 1,
+    "models": ["comer", "san", "can"],
+    "showPendingRows": true
+  }
 }
