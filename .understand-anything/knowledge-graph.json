@@ -1,0 +1,334 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "whiteboard2",
+    "languages": ["html", "css", "javascript", "python"],
+    "frameworks": ["FastAPI"],
+    "description": "A browser-based whiteboard application with handwriting-to-LaTeX recognition via a unified FastAPI backend.",
+    "analyzedAt": "2026-06-22T00:00:00Z",
+    "gitCommitHash": "3110300caa719a1f3eace9782e350c2b9a724520"
+  },
+  "nodes": [
+    {
+      "id": "file:index.html",
+      "type": "file",
+      "name": "index.html",
+      "summary": "Main web UI entry point for the whiteboard application and handwriting recognition controls.",
+      "tags": ["frontend", "ui", "html", "entry"],
+      "filePath": "index.html"
+    },
+    {
+      "id": "file:styles.css",
+      "type": "file",
+      "name": "styles.css",
+      "summary": "Stylesheet for the whiteboard UI, toolbar, canvas, and prediction panel.",
+      "tags": ["frontend", "css", "styles"],
+      "filePath": "styles.css"
+    },
+    {
+      "id": "file:StrokeDataSaver.js",
+      "type": "file",
+      "name": "StrokeDataSaver.js",
+      "summary": "Stores and manages stroke history for undo/redo and export operations.",
+      "tags": ["frontend", "canvas", "state", "js"],
+      "filePath": "StrokeDataSaver.js"
+    },
+    {
+      "id": "file:IdentifyLine.js",
+      "type": "file",
+      "name": "IdentifyLine.js",
+      "summary": "Detects and groups handwritten strokes into logical lines for recognition.",
+      "tags": ["frontend", "analysis", "js"],
+      "filePath": "IdentifyLine.js"
+    },
+    {
+      "id": "file:functionality/PenStroke.js",
+      "type": "file",
+      "name": "functionality/PenStroke.js",
+      "summary": "Handles pen drawing, live smoothing, stroke finalization, and undo/redo integration.",
+      "tags": ["frontend", "canvas", "drawing", "js"],
+      "filePath": "functionality/PenStroke.js"
+    },
+    {
+      "id": "file:functionality/PenSizeColor.js",
+      "type": "file",
+      "name": "functionality/PenSizeColor.js",
+      "summary": "Manages pen color and brush size state exposed globally to the drawing code.",
+      "tags": ["frontend", "ui", "controls", "js"],
+      "filePath": "functionality/PenSizeColor.js"
+    },
+    {
+      "id": "file:functionality/StrokeSmoother.js",
+      "type": "file",
+      "name": "functionality/StrokeSmoother.js",
+      "summary": "Smooths raw pointer input into filled stroke outlines using Catmull-Rom splines.",
+      "tags": ["frontend", "graphics", "js"],
+      "filePath": "functionality/StrokeSmoother.js"
+    },
+    {
+      "id": "file:functionality/Eraser.js",
+      "type": "file",
+      "name": "functionality/Eraser.js",
+      "summary": "Provides eraser gesture detection and removes strokes that intersect the eraser path.",
+      "tags": ["frontend", "canvas", "tool", "js"],
+      "filePath": "functionality/Eraser.js"
+    },
+    {
+      "id": "file:HandwritingToLatex/LatexPredictor.js",
+      "type": "file",
+      "name": "HandwritingToLatex/LatexPredictor.js",
+      "summary": "Rasterizes handwritten lines and sends them to the unified recognition backend, then renders candidate LaTeX results.",
+      "tags": ["frontend", "backend", "recognition", "js"],
+      "filePath": "HandwritingToLatex/LatexPredictor.js"
+    },
+    {
+      "id": "file:HandwritingToLatex/LinesRasterizer.js",
+      "type": "file",
+      "name": "HandwritingToLatex/LinesRasterizer.js",
+      "summary": "Converts grouped strokes into raster images for handwriting recognition.",
+      "tags": ["frontend", "graphics", "js"],
+      "filePath": "HandwritingToLatex/LinesRasterizer.js"
+    },
+    {
+      "id": "file:server/server.py",
+      "type": "service",
+      "name": "server/server.py",
+      "summary": "FastAPI server providing unified /recognize and /health endpoints for CoMER, SAN, and CAN models.",
+      "tags": ["backend", "service", "python"],
+      "filePath": "server/server.py"
+    },
+    {
+      "id": "config:server/requirements-api.txt",
+      "type": "config",
+      "name": "server/requirements-api.txt",
+      "summary": "Python dependency manifest for the handwriting recognition API server.",
+      "tags": ["backend", "dependencies", "config"],
+      "filePath": "server/requirements-api.txt"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "summary": "Project overview and usage notes for the whiteboard and handwriting recognition app.",
+      "tags": ["documentation", "guide"],
+      "filePath": "README.md"
+    },
+    {
+      "id": "endpoint:server/health",
+      "type": "endpoint",
+      "name": "/health",
+      "summary": "Health check endpoint for the unified recognition service.",
+      "tags": ["backend", "api", "health"],
+      "filePath": "server/server.py"
+    },
+    {
+      "id": "endpoint:server/recognize",
+      "type": "endpoint",
+      "name": "/recognize",
+      "summary": "POST endpoint that accepts a handwritten image and returns LaTeX recognition results.",
+      "tags": ["backend", "api", "recognition"],
+      "filePath": "server/server.py"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:index.html",
+      "target": "file:StrokeDataSaver.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:index.html",
+      "target": "file:IdentifyLine.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:index.html",
+      "target": "file:HandwritingToLatex/LinesRasterizer.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:index.html",
+      "target": "file:functionality/StrokeSmoother.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:index.html",
+      "target": "file:functionality/PenSizeColor.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:index.html",
+      "target": "file:functionality/PenStroke.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:index.html",
+      "target": "file:functionality/Eraser.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:index.html",
+      "target": "file:HandwritingToLatex/LatexPredictor.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:server/server.py",
+      "target": "config:server/requirements-api.txt",
+      "type": "configures"
+    },
+    {
+      "source": "file:server/server.py",
+      "target": "endpoint:server/health",
+      "type": "deploys"
+    },
+    {
+      "source": "file:server/server.py",
+      "target": "endpoint:server/recognize",
+      "type": "deploys"
+    },
+    {
+      "source": "file:functionality/PenStroke.js",
+      "target": "file:StrokeDataSaver.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:functionality/PenStroke.js",
+      "target": "file:functionality/StrokeSmoother.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:functionality/PenStroke.js",
+      "target": "file:IdentifyLine.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:functionality/PenStroke.js",
+      "target": "file:HandwritingToLatex/LinesRasterizer.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:functionality/Eraser.js",
+      "target": "file:StrokeDataSaver.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:functionality/Eraser.js",
+      "target": "file:functionality/StrokeSmoother.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:functionality/Eraser.js",
+      "target": "file:IdentifyLine.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:functionality/Eraser.js",
+      "target": "file:HandwritingToLatex/LinesRasterizer.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:HandwritingToLatex/LatexPredictor.js",
+      "target": "file:HandwritingToLatex/LinesRasterizer.js",
+      "type": "imports"
+    },
+    {
+      "source": "file:HandwritingToLatex/LatexPredictor.js",
+      "target": "file:server/server.py",
+      "type": "depends_on"
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:index.html",
+      "type": "documents"
+    },
+    {
+      "source": "file:index.html",
+      "target": "file:styles.css",
+      "type": "imports"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:frontend",
+      "name": "Frontend UI",
+      "description": "Browser-based whiteboard UI, drawing tools, stroke smoothing, and handwriting recognition orchestration.",
+      "nodeIds": [
+        "file:index.html",
+        "file:styles.css",
+        "file:StrokeDataSaver.js",
+        "file:IdentifyLine.js",
+        "file:functionality/PenStroke.js",
+        "file:functionality/PenSizeColor.js",
+        "file:functionality/StrokeSmoother.js",
+        "file:functionality/Eraser.js",
+        "file:HandwritingToLatex/LatexPredictor.js",
+        "file:HandwritingToLatex/LinesRasterizer.js"
+      ]
+    },
+    {
+      "id": "layer:backend",
+      "name": "Backend API Service",
+      "description": "FastAPI server exposing recognition and health endpoints, plus the dependency manifest for deployment.",
+      "nodeIds": [
+        "file:server/server.py",
+        "config:server/requirements-api.txt",
+        "endpoint:server/health",
+        "endpoint:server/recognize"
+      ]
+    },
+    {
+      "id": "layer:documentation",
+      "name": "Documentation",
+      "description": "Project documentation and usage guide.",
+      "nodeIds": [
+        "document:README.md"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Project Overview",
+      "description": "Read the README to understand the purpose and architecture of the whiteboard project.",
+      "nodeIds": [
+        "document:README.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Open the Web UI",
+      "description": "Inspect the main HTML entry point and stylesheet that define the drawing canvas and user interface.",
+      "nodeIds": [
+        "file:index.html",
+        "file:styles.css"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Understand stroke rendering",
+      "description": "Review the drawing pipeline, smoothing logic, and state handling for pen strokes.",
+      "nodeIds": [
+        "file:functionality/StrokeSmoother.js",
+        "file:functionality/PenStroke.js",
+        "file:StrokeDataSaver.js"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "See handwriting recognition integration",
+      "description": "Follow how handwritten strokes are rasterized and sent to the backend for LaTeX recognition.",
+      "nodeIds": [
+        "file:HandwritingToLatex/LinesRasterizer.js",
+        "file:HandwritingToLatex/LatexPredictor.js"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Inspect the API server",
+      "description": "Review the FastAPI backend that loads CoMER, SAN, and CAN models and exposes recognition endpoints.",
+      "nodeIds": [
+        "file:server/server.py"
+      ]
+    }
+  ]
+}

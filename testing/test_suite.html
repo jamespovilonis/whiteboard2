@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard OCR Test Suite</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script src="../StrokeDataSaver.js?v=20260622"></script>
+    <script src="../IdentifyLine.js?v=20260622"></script>
+    <script src="../HandwritingToLatex/LinesRasterizer.js?v=20260622"></script>
+    <script src="../functionality/StrokeSmoother.js?v=20260622"></script>
+    <script src="../HandwritingToLatex/LatexPredictor.js?v=20260622"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        h1 { margin-top: 0; font-size: 22px; }
+        .layout { display: flex; gap: 20px; flex-wrap: wrap; }
+        .left { flex: 1 1 600px; }
+        .right { flex: 1 1 500px; }
+        .canvas-wrap { border: 1px solid #ccc; border-radius: 8px; background: #fff; overflow: hidden; position: relative; height: 400px; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #whiteboard { cursor: crosshair; }
+        #whiteboard-bg { background: #fff; }
+        .controls { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        button { padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; }
+        button:hover { background: #f0f0f0; }
+        button.primary { background: #1e88e5; color: #fff; border-color: #1e88e5; }
+        button.primary:hover { background: #1565c0; }
+        .eq-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .eq-btn { font-size: 12px; padding: 6px 10px; }
+        .eq-btn.simple { background: #e3f2fd; border-color: #90caf9; }
+        .eq-btn.complex { background: #fff3e0; border-color: #ffcc80; }
+        .panel { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; min-height: 300px; }
+        .result-item { border-bottom: 1px solid #eee; padding: 12px 0; }
+        .result-item:last-child { border-bottom: none; }
+        .result-header { font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .status { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+        .status.pass { background: #c8e6c9; color: #2e7d32; }
+        .status.fail { background: #ffcdd2; color: #c62828; }
+        .expected { background: #f5f5f5; padding: 8px; border-radius: 4px; margin: 8px 0; font-family: 'Courier New', monospace; font-size: 13px; }
+        .prediction { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .pred-box { flex: 1 1 140px; border: 1px solid #ddd; border-radius: 6px; padding: 8px; background: #fafafa; }
+        .pred-title { font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 4px; }
+        .pred-latex { font-size: 13px; font-family: 'Courier New', monospace; word-break: break-all; }
+        .conf { font-size: 11px; color: #888; margin-top: 4px; }
+        .katex-inline { font-size: 1.1em; }
+        #status-bar { margin-top: 12px; color: #666; font-size: 13px; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Whiteboard OCR Test Suite</h1>
+    <div class="layout">
+        <div class="left">
+            <div class="canvas-wrap">
+                <canvas id="whiteboard-bg"></canvas>
+                <canvas id="whiteboard"></canvas>
+            </div>
+            <div class="controls">
+                <button class="primary" onclick="recognizeCurrent()">Recognize (T)</button>
+                <button onclick="clearCanvas()">Clear</button>
+                <button onclick="exportCanvasPNG()">Export PNG</button>
+                <span style="font-size:12px;color:#666;">Select an equation below to draw it:</span>
+            </div>
+            <div class="eq-list" id="equation-buttons"></div>
+            <div id="status-bar">Ready</div>
+        </div>
+        <div class="right">
+            <div class="panel">
+                <h3 style="margin-top:0">Results</h3>
+                <div id="results">Draw an equation and click Recognize to see results.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Character stroke definitions (same as Python test script)
+    var CHAR_STROKES = {
+        "0": [[ [30,15],[48,15],[52,30],[52,55],[48,68],[30,68],[12,55],[12,30],[30,15] ]],
+        "1": [[ [30,15],[30,68] ],[ [20,18],[40,15] ]],
+        "2": [[ [15,15],[45,15],[48,40],[18,45],[18,68],[50,68] ]],
+        "3": [[ [15,15],[48,15],[48,38],[32,38] ],[ [48,38],[48,68],[15,68] ]],
+        "4": [[ [40,15],[40,68] ],[ [40,18],[12,48],[52,48] ]],
+        "5": [[ [45,15],[15,15],[15,40],[42,40],[42,68],[15,68] ]],
+        "6": [[ [45,15],[18,15],[15,40],[15,60],[18,68],[42,68],[45,45],[18,45] ]],
+        "7": [[ [15,15],[50,15],[30,68] ]],
+        "8": [[ [30,15],[45,15],[48,35],[30,35],[15,35],[15,55],[42,55],[45,68],[30,68],[15,55] ]],
+        "9": [[ [45,68],[45,15],[18,15],[15,38],[45,38] ]],
+        "a": [[ [35,30],[22,30],[18,48],[18,60],[25,65],[42,65],[45,50],[45,30] ],[ [45,30],[45,25] ]],
+        "b": [[ [15,15],[15,68] ],[ [15,40],[32,38],[42,48],[42,62],[30,65],[18,60] ]],
+        "c": [[ [42,28],[22,28],[15,42],[15,58],[22,65],[42,65] ]],
+        "d": [[ [48,15],[48,68] ],[ [48,40],[30,38],[20,48],[20,62],[32,65],[45,60] ]],
+        "e": [[ [42,28],[20,28],[18,42],[18,58],[22,65],[42,65] ],[ [20,48],[40,48] ]],
+        "f": [[ [22,15],[42,15] ],[ [28,15],[28,68] ],[ [18,42],[38,42] ]],
+        "g": [[ [38,30],[22,30],[18,48],[18,60],[22,65],[38,65],[42,50],[42,30] ],[ [42,65],[42,82],[38,85],[20,85] ]],
+        "h": [[ [15,15],[15,68] ],[ [15,40],[30,38],[42,48],[42,68] ]],
+        "i": [[ [30,15] ],[ [30,28],[30,68] ]],
+        "k": [[ [12,15],[12,68] ],[ [12,42],[42,18] ],[ [12,48],[40,68] ]],
+        "l": [[ [30,15],[30,68] ]],
+        "m": [[ [8,28],[8,68] ],[ [8,28],[22,28],[22,52],[22,68] ],[ [22,28],[36,28],[36,52],[36,68] ]],
+        "n": [[ [12,28],[12,68] ],[ [12,28],[28,28],[40,50],[40,68] ]],
+        "o": [[ [30,30],[42,30],[45,45],[42,58],[30,58],[18,45],[30,30] ]],
+        "p": [[ [15,28],[15,85] ],[ [15,28],[32,28],[42,42],[42,58],[30,62],[18,58] ]],
+        "q": [[ [42,28],[42,85] ],[ [42,28],[28,28],[18,42],[18,58],[30,62],[42,58] ]],
+        "r": [[ [12,28],[12,68] ],[ [12,28],[38,28],[38,40] ]],
+        "s": [[ [42,22],[18,22],[18,42],[42,42],[42,65],[18,65] ]],
+        "t": [[ [25,15],[25,60] ],[ [15,38],[40,38] ]],
+        "u": [[ [15,25],[15,60],[42,60],[42,25] ]],
+        "v": [[ [12,25],[30,65],[48,25] ]],
+        "w": [[ [5,25],[18,65],[30,35],[42,65],[55,25] ]],
+        "x": [[ [12,25],[48,65] ],[ [48,25],[12,65] ]],
+        "y": [[ [12,25],[30,50],[48,25] ],[ [30,50],[30,80] ]],
+        "z": [[ [15,25],[48,25],[15,65],[48,65] ]],
+        "A": [[ [10,68],[30,12],[50,68] ],[ [18,48],[42,48] ]],
+        "B": [[ [12,12],[12,68] ],[ [12,12],[35,12],[42,28],[30,35] ],[ [12,35],[30,35] ],[ [12,35],[30,35],[42,52],[30,68],[12,68] ]],
+        "C": [[ [48,18],[22,18],[12,38],[12,52],[22,68],[48,68] ]],
+        "D": [[ [12,12],[12,68] ],[ [12,12],[32,12],[48,28],[48,52],[32,68],[12,68] ]],
+        "E": [[ [48,12],[12,12],[12,68],[48,68] ],[ [12,42],[38,42] ]],
+        "F": [[ [12,12],[12,68] ],[ [12,12],[48,12] ],[ [12,40],[38,40] ]],
+        "H": [[ [12,12],[12,68] ],[ [48,12],[48,68] ],[ [12,42],[48,42] ]],
+        "I": [[ [30,12],[30,68] ],[ [15,12],[45,12] ],[ [15,68],[45,68] ]],
+        "M": [[ [8,68],[8,12],[30,42],[52,12],[52,68] ]],
+        "N": [[ [10,68],[10,12],[50,68],[50,12] ]],
+        "P": [[ [12,12],[12,68] ],[ [12,12],[38,12],[45,28],[35,35],[12,35] ]],
+        "R": [[ [12,12],[12,68] ],[ [12,12],[35,12],[42,28],[32,35],[12,35] ],[ [30,40],[48,68] ]],
+        "S": [[ [45,15],[18,15],[15,32],[42,35],[45,52],[30,65],[15,65] ]],
+        "T": [[ [8,12],[52,12] ],[ [30,12],[30,68] ]],
+        "X": [[ [10,12],[50,68] ],[ [50,12],[10,68] ]],
+        "+": [[ [30,15],[30,65] ],[ [10,40],[50,40] ]],
+        "-": [[ [10,40],[50,40] ]],
+        "=": [[ [10,30],[50,30] ],[ [10,50],[50,50] ]],
+        "*": [[ [18,20],[42,60] ],[ [42,20],[18,60] ],[ [10,40],[50,40] ]],
+        "/": [[ [48,12],[8,68] ]],
+        "^": [[ [15,35],[30,15],[45,35] ]],
+        "(": [[ [42,10],[22,28],[18,42],[22,58],[42,72] ]],
+        ")": [[ [18,10],[38,28],[42,42],[38,58],[18,72] ]],
+        "<": [[ [48,20],[15,42],[48,62] ]],
+        ">": [[ [12,20],[45,42],[12,62] ]],
+        "!": [[ [30,10],[30,50] ],[ [30,60] ]],
+        "∫": [[ [48,10],[8,10],[32,38],[8,65],[48,65] ]]
+    };
+
+    var EQUATIONS = [
+        {name: "simple_pythagorean", chars: "a 2 + b 2 = c 2", latex: "a^{2}+b^{2}=c^{2}", category: "simple"},
+        {name: "simple_x_equals_yz", chars: "x = y + z", latex: "x = y + z", category: "simple"},
+        {name: "simple_square_root", chars: "x = / y", latex: "x = \\sqrt{y}", category: "simple"},
+        {name: "simple_less_than", chars: "a < b + c", latex: "a < b + c", category: "simple"},
+        {name: "simple_plus_minus", chars: "x = 2 + - 3", latex: "x = 2 \\pm 3", category: "simple"},
+        {name: "simple_fraction", chars: "a / b = c", latex: "\\frac{a}{b}=c", category: "simple"},
+        {name: "simple_times", chars: "y = a * b / c", latex: "y=a\\cdot\\frac{b}{c}", category: "simple"},
+        {name: "simple_exponent", chars: "c = a 2 + b 2", latex: "c=a^{2}+b^{2}", category: "simple"},
+        {name: "complex_quadratic", chars: "x = - b + - / b 2 - 4 a c / 2 a", latex: "x=\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}", category: "complex"},
+        {name: "complex_eulers", chars: "e i + 1 = 0", latex: "e^{i\\pi}+1=0", category: "complex"},
+        {name: "complex_limit", chars: "l i m n ( 1 + 1 / n ) n = e", latex: "\\lim_{n\\to\\infty}(1+\\frac{1}{n})^{n}=e", category: "complex"},
+        {name: "complex_sum", chars: "S k = 1 1 / k 2 = 2 / 6", latex: "\\sum_{k=1}^{\\infty}\\frac{1}{k^{2}}=\\frac{\\pi^{2}}{6}", category: "complex"}
+    ];
+
+    var bgCanvas = document.getElementById('whiteboard-bg');
+    var fgCanvas = document.getElementById('whiteboard');
+    var bgCtx = bgCanvas.getContext('2d');
+    var fgCtx = fgCanvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var strokeSmoother = new StrokeSmoother();
+    strokeSmoother.opts.size = 12;
+
+    function resize() {
+        var w = fgCanvas.parentElement.clientWidth;
+        var h = fgCanvas.parentElement.clientHeight;
+        bgCanvas.width = w * dpr; bgCanvas.height = h * dpr;
+        fgCanvas.width = w * dpr; fgCanvas.height = h * dpr;
+        bgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        fgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        redrawAllStrokes();
+    }
+    window.addEventListener('resize', resize);
+
+    function redrawForeground() {
+        fgCtx.clearRect(0, 0, fgCanvas.width / dpr, fgCanvas.height / dpr);
+        fgCtx.drawImage(bgCanvas, 0, 0, fgCanvas.width / dpr, fgCanvas.height / dpr);
+    }
+
+    function redrawAllStrokes() {
+        bgCtx.clearRect(0, 0, bgCanvas.width / dpr, bgCanvas.height / dpr);
+        var strokes = window.strokeSaver.getStrokes();
+        for (var i = 0; i < strokes.length; i++) {
+            var st = strokes[i];
+            if (st.outlinePoints && st.outlinePoints.length >= 3 && st.color) {
+                strokeSmoother.render(bgCtx, st.outlinePoints, st.color);
+            }
+        }
+        redrawForeground();
+    }
+
+    function renderEquation(chars, originX, originY, charW, charH, gap) {
+        charW = charW || 60; charH = charH || 80; gap = gap || 8;
+        var strokes = [];
+        var x = originX;
+        for (var i = 0; i < chars.length; i++) {
+            var ch = chars[i];
+            if (ch === ' ') { x += charW * 0.5 + gap; continue; }
+            var chStrokes = CHAR_STROKES[ch] || [];
+            for (var s = 0; s < chStrokes.length; s++) {
+                var stroke = chStrokes[s];
+                var positioned = [];
+                for (var p = 0; p < stroke.length; p++) {
+                    positioned.push({x: stroke[p][0] + x, y: stroke[p][1] + originY});
+                }
+                strokes.push(positioned);
+            }
+            x += charW + gap;
+        }
+        return strokes;
+    }
+
+    function drawEquation(eq) {
+        clearCanvas();
+        var cw = fgCanvas.clientWidth;
+        var ch = fgCanvas.clientHeight;
+        var charW = 60, charH = 80, gap = 8;
+        var totalW = eq.chars.length * charW + (eq.chars.length - 1) * gap;
+        var originX = Math.max(40, (cw - totalW) / 2);
+        var originY = Math.max(60, (ch - charH) / 2);
+        var strokes = renderEquation(eq.chars, originX, originY, charW, charH, gap);
+
+        for (var si = 0; si < strokes.length; si++) {
+            var rawPts = strokes[si];
+            if (rawPts.length < 2) continue;
+            strokeSaver.startStroke(rawPts[0].x, rawPts[0].y, 0.5, cw, ch);
+            for (var pi = 1; pi < rawPts.length; pi++) {
+                strokeSaver.addPoint(rawPts[pi].x, rawPts[pi].y, 0.5, cw, ch);
+            }
+            var outline = strokeSmoother.smooth(rawPts);
+            strokeSaver.endStroke(outline, '#000000');
+            strokeSmoother.render(bgCtx, outline, '#000000');
+        }
+        redrawForeground();
+        IdentifyLine.finalizeStroke();
+        LinesRasterizer.clearCache();
+        LinesRasterizer.rasterizeAllLines();
+
+        document.getElementById('status-bar').textContent = 'Drew "' + eq.name + '". Click Recognize.';
+
+        // Show expected formula in results panel immediately
+        var results = document.getElementById('results');
+        results.innerHTML = '';
+        var item = document.createElement('div');
+        item.className = 'result-item';
+        item.innerHTML = '<div class="result-header">Expected formula</div>' +
+            '<div class="expected" id="expected-latex"></div>' +
+            '<div style="font-size:12px;color:#666">Click Recognize to get model predictions.</div>';
+        results.appendChild(item);
+        try {
+            katex.render(eq.latex, document.getElementById('expected-latex'), {throwOnError: false, displayMode: true});
+        } catch (e) {
+            document.getElementById('expected-latex').textContent = eq.latex;
+        }
+    }
+
+    function clearCanvas() {
+        if (window.strokeSaver) window.strokeSaver.clear();
+        if (typeof IdentifyLine !== 'undefined') IdentifyLine.groupStrokesIntoLines();
+        if (typeof LinesRasterizer !== 'undefined') {
+            LinesRasterizer.clearCache();
+            LinesRasterizer.rasterizeAllLines();
+        }
+        bgCtx.clearRect(0, 0, bgCanvas.width / dpr, bgCanvas.height / dpr);
+        redrawForeground();
+        document.getElementById('results').innerHTML = 'Draw an equation and click Recognize to see results.';
+        document.getElementById('status-bar').textContent = 'Canvas cleared';
+    }
+
+    function recognizeCurrent() {
+        if (typeof LatexPredictor !== 'undefined') {
+            LatexPredictor.recognize();
+            setTimeout(extractAndDisplayResults, 3000);
+        }
+    }
+
+    function latexMatches(pred, ground) {
+        if (!pred || !ground) return false;
+        var p = pred.replace(/\s+/g, '');
+        var g = ground.replace(/\s+/g, '');
+        if (p === g) return true;
+        var symbols = ['\\\\frac', '\\\\sqrt', '\\\\sum', '\\\\int', '\\\\lim', '\\\\pi', '\\\\pm', '\\\\cdot', '\\\\infty', '\\\\to', '^{', '_{'];
+        for (var i = 0; i < symbols.length; i++) {
+            if (g.indexOf(symbols[i]) !== -1 && p.indexOf(symbols[i]) === -1) return false;
+        }
+        return true;
+    }
+
+    function extractAndDisplayResults() {
+        var rows = document.querySelectorAll('.prediction-row');
+        var expected = document.getElementById('expected-latex');
+        var ground = expected ? expected.textContent.trim() : '';
+        var results = document.getElementById('results');
+        results.innerHTML = '';
+
+        if (rows.length === 0) {
+            results.textContent = 'No predictions returned. Check that the server is running.';
+            return;
+        }
+
+        var row = rows[0];
+        var cols = row.querySelectorAll('.prediction-col');
+        var names = ['comer', 'san', 'can'];
+
+        var item = document.createElement('div');
+        item.className = 'result-item';
+
+        var header = document.createElement('div');
+        header.className = 'result-header';
+        header.innerHTML = '<span>Model predictions vs expected</span>';
+        item.appendChild(header);
+
+        var expectedDiv = document.createElement('div');
+        expectedDiv.className = 'expected';
+        expectedDiv.textContent = ground;
+        item.appendChild(expectedDiv);
+
+        var predContainer = document.createElement('div');
+        predContainer.className = 'prediction';
+
+        for (var i = 0; i < cols.length; i++) {
+            var col = cols[i];
+            var model = names[i] || ('col' + i);
+            var raw = col.querySelector('.prediction-raw');
+            var latex = raw ? raw.textContent.trim() : '';
+            var confEl = col.querySelector('.prediction-conf-badge');
+            var conf = confEl ? confEl.textContent.trim() : 'N/A';
+            var match = latexMatches(latex, ground);
+
+            var box = document.createElement('div');
+            box.className = 'pred-box';
+            var statusClass = match ? 'pass' : 'fail';
+            var statusText = match ? 'MATCH' : 'DIFF';
+            box.innerHTML = '<div class="pred-title">' + model.toUpperCase() +
+                ' <span class="status ' + statusClass + '">' + statusText + '</span></div>' +
+                '<div class="pred-latex"></div>' +
+                '<div class="conf">Conf: ' + conf + '</div>';
+
+            var latexBox = box.querySelector('.pred-latex');
+            try {
+                katex.render(latex, latexBox, {throwOnError: false, displayMode: false});
+            } catch (e) {
+                latexBox.textContent = latex;
+            }
+            predContainer.appendChild(box);
+        }
+
+        item.appendChild(predContainer);
+        results.appendChild(item);
+    }
+
+    function buildButtons() {
+        var list = document.getElementById('equation-buttons');
+        for (var i = 0; i < EQUATIONS.length; i++) {
+            var eq = EQUATIONS[i];
+            var btn = document.createElement('button');
+            btn.className = 'eq-btn ' + eq.category;
+            btn.textContent = eq.name.replace(/_/g, ' ');
+            btn.title = eq.latex;
+            btn.onclick = (function(e) { return function() { drawEquation(e); }; })(eq);
+            list.appendChild(btn);
+        }
+    }
+
+    // Wait for all scripts to load, then init
+    document.addEventListener('DOMContentLoaded', function() {
+        resize();
+        buildButtons();
+        document.getElementById('status-bar').textContent = 'Ready. Select an equation or draw manually.';
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 't' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            recognizeCurrent();
+        }
+    });
+    </script>
+</body>
+</html>

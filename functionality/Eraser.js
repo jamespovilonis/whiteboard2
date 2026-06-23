@@ -39,12 +39,16 @@ function activateEraser() {
   // Deactivate pen when eraser is active
   var penBtn = document.getElementById("pen");
   if (penBtn) penBtn.classList.remove("active");
+  var mouseBtn = document.getElementById("mouse");
+  if (mouseBtn) mouseBtn.classList.remove("active");
   fgCanvas.style.cursor = "none"; // hide default cursor, we'll draw custom circle
+  if (typeof updateToolbarToggleIcon === "function") updateToolbarToggleIcon();
 }
 
 function deactivateEraser() {
   eraserBtn.classList.remove("active");
   fgCanvas.style.cursor = "crosshair";
+  if (typeof updateToolbarToggleIcon === "function") updateToolbarToggleIcon();
 }
 
 eraserBtn.addEventListener("click", function () {
@@ -184,11 +188,9 @@ function performErase() {
 
   // Remove intersecting strokes and redraw
   if (toRemove.length > 0) {
-    // Push undo before removing
-    if (typeof window._undoStack !== "undefined") {
-      window._redoStack = [];
-      window._undoStack.push(JSON.parse(JSON.stringify(strokeSaver.getStrokes())));
-      if (window._undoStack.length > 50) window._undoStack.shift();
+    // Push undo snapshot before removing
+    if (typeof window.pushUndoState === "function") {
+      window.pushUndoState();
     }
     strokeSaver.removeStrokes(toRemove);
     window.redrawAllStrokes();

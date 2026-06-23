@@ -8,8 +8,8 @@
 var SMOOTHER_DEFAULTS = {
   size: 12,              // base stroke width in CSS pixels
   thinning: 0.5,        // how much pressure affects width (0 = none, 1 = full)
-  smoothing: 0.7,       // Catmull-Rom tension (0 = tight to original, 1 = max curve)
-  streamline: 0.7,      // moving-average jitter reduction (0 = none, 0.99 = max lag)
+  smoothing: 0.9,       // Catmull-Rom tension (0 = tight to original, 1 = max curve)
+  streamline: 0.6,      // moving-average jitter reduction (0 = none, 0.99 = max lag)
   startTaper: 1,        // number of points to taper at the start (0 = no taper)
   endTaper: 1,          // number of points to taper at the end (0 = no taper)
   cap: true,            // whether to draw rounded caps at stroke ends

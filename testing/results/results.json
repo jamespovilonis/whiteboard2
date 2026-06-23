@@ -1,0 +1,210 @@
+[
+  {
+    "name": "simple_pythagorean",
+    "category": "simple",
+    "char_string": "a 2 + b 2 = c 2",
+    "ground_truth": "a^2 + b^2 = c^2",
+    "predictions": {
+      "comer": {
+        "latex": "<sos>",
+        "confidence": 0.18,
+        "match": true,
+        "reason": "key_symbols_match"
+      },
+      "san": {
+        "latex": "\\mu _ { l }",
+        "confidence": 1,
+        "match": true,
+        "reason": "key_symbols_match"
+      },
+      "can": {
+        "latex": "1",
+        "confidence": 1,
+        "match": true,
+        "reason": "key_symbols_match"
+      }
+    }
+  },
+  {
+    "name": "simple_x_equals_yz",
+    "category": "simple",
+    "char_string": "x = y + z",
+    "ground_truth": "",
+    "predictions": {
+      "comer": {
+        "latex": "<sos>",
+        "confidence": 0.18,
+        "match": false,
+        "reason": "empty prediction"
+      },
+      "san": {
+        "latex": "\\mu _ { l }",
+        "confidence": 1,
+        "match": false,
+        "reason": "empty prediction"
+      },
+      "can": {
+        "latex": "1",
+        "confidence": 1,
+        "match": false,
+        "reason": "empty prediction"
+      }
+    }
+  },
+  {
+    "name": "simple_square_root",
+    "category": "simple",
+    "char_string": "x = / y",
+    "ground_truth": "x = \\sqrt{y}",
+    "predictions": {
+      "comer": {
+        "latex": "<sos>",
+        "confidence": 0.18,
+        "match": false,
+        "reason": "missing: \\sqrt"
+      },
+      "san": {
+        "latex": "\\mu _ { l }",
+        "confidence": 1,
+        "match": false,
+        "reason": "missing: \\sqrt"
+      },
+      "can": {
+        "latex": "1",
+        "confidence": 1,
+        "match": false,
+        "reason": "missing: \\sqrt"
+      }
+    }
+  },
+  {
+    "name": "simple_less_than",
+    "category": "simple",
+    "char_string": "a < b + c",
+    "ground_truth": "a < b + c",
+    "predictions": {
+      "comer": {
+        "latex": "<sos>",
+        "confidence": 0.18,
+        "match": true,
+        "reason": "key_symbols_match"
+      },
+      "san": {
+        "latex": "\\mu _ { l }",
+        "confidence": 1,
+        "match": true,
+        "reason": "key_symbols_match"
+      },
+      "can": {
+        "latex": "1",
+        "confidence": 1,
+        "match": true,
+        "reason": "key_symbols_match"
+      }
+    }
+  },
+  {
+    "name": "simple_plus_minus",
+    "category": "simple",
+    "char_string": "x = 2 + - 3",
+    "ground_truth": "x = 2 \\pm 3",
+    "predictions": {
+      "comer": {
+        "latex": "<sos>",
+        "confidence": 0.18,
+        "match": false,
+        "reason": "missing: \\pm"
+      },
+      "san": {
+        "latex": "\\mu _ { l }",
+        "confidence": 1,
+        "match": false,
+        "reason": "missing: \\pm"
+      },
+      "can": {
+        "latex": "1",
+        "confidence": 1,
+        "match": false,
+        "reason": "missing: \\pm"
+      }
+    }
+  },
+  {
+    "name": "simple_fraction",
+    "category": "simple",
+    "char_string": "a / b = c",
+    "ground_truth": "",
+    "predictions": {
+      "comer": {
+        "latex": "<sos>",
+        "confidence": 0.18,
+        "match": false,
+        "reason": "empty prediction"
+      },
+      "san": {
+        "latex": "\\mu _ { l }",
+        "confidence": 1,
+        "match": false,
+        "reason": "empty prediction"
+      },
+      "can": {
+        "latex": "1",
+        "confidence": 1,
+        "match": false,
+        "reason": "empty prediction"
+      }
+    }
+  },
+  {
+    "name": "simple_times",
+    "category": "simple",
+    "char_string": "y = a * b / c",
+    "ground_truth": "",
+    "predictions": {
+      "comer": {
+        "latex": "<sos>",
+        "confidence": 0.18,
+        "match": false,
+        "reason": "empty prediction"
+      },
+      "san": {
+        "latex": "\\mu _ { l }",
+        "confidence": 1,
+        "match": false,
+        "reason": "empty prediction"
+      },
+      "can": {
+        "latex": "1",
+        "confidence": 1,
+        "match": false,
+        "reason": "empty prediction"
+      }
+    }
+  },
+  {
+    "name": "simple_exponent",
+    "category": "simple",
+    "char_string": "c = a 2 + b 2",
+    "ground_truth": "",
+    "predictions": {
+      "comer": {
+        "latex": "<sos>",
+        "confidence": 0.18,
+        "match": false,
+        "reason": "empty prediction"
+      },
+      "san": {
+        "latex": "\\mu _ { l }",
+        "confidence": 1,
+        "match": false,
+        "reason": "empty prediction"
+      },
+      "can": {
+        "latex": "1",
+        "confidence": 1,
+        "match": false,
+        "reason": "empty prediction"
+      }
+    }
+  }
+]

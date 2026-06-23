@@ -4,12 +4,9 @@
 
 var LatexPredictor = (function () {
   // ── Configurable server URL ────────────────────────────────────────
-  var _serverUrl = "http://localhost:8000";
-
-  function setServerUrl(url) {
-    _serverUrl = url;
-  }
-
+  // Default: empty string = same origin (frontend and API on the same server).
+  // Override via config.json or ?apiUrl= URL parameter.
+  var _serverUrl = "";
   var _predictionPanel = null;
   var _statusDots = { comer: null, san: null, can: null };
   var _serverHealthOk = { comer: false, san: false, can: false };
@@ -33,7 +30,10 @@ var LatexPredictor = (function () {
     _statusDots.comer = document.getElementById("serverStatus-comer");
     _statusDots.san = document.getElementById("serverStatus-san");
     _statusDots.can = document.getElementById("serverStatus-can");
-    if (_predictionPanel) _predictionPanel.innerHTML = "";
+    if (_predictionPanel) {
+      _predictionPanel.innerHTML = "";
+      _predictionPanel.classList.remove("active");
+    }
     // Do an initial health check right away
     checkServerHealth("comer");
     checkServerHealth("san");
@@ -79,6 +79,9 @@ var LatexPredictor = (function () {
     }
 
     _recognizing = true;
+
+    // Activate the right-side panel only after the user explicitly checks/recognizes.
+    if (_predictionPanel) _predictionPanel.classList.add("active");
 
     // Add spinning class to recognize button
     var recognizeBtn = document.getElementById("recognize");
@@ -460,36 +463,6 @@ var LatexPredictor = (function () {
         }
         candRow.appendChild(scoreSpan);
 
-        // Relative probability bar (only for multi-candidate)
-        if (result.candidates.length > 1) {
-          var relPct = computeRelativeProb(result.candidates, i);
-          var barWrap = document.createElement("span");
-          barWrap.className = "candidate-prob-bar";
-          var bar = document.createElement("span");
-          bar.className = "candidate-prob-fill";
-          bar.style.width = relPct + "%";
-          barWrap.appendChild(bar);
-          candRow.appendChild(barWrap);
-
-          var probSpan = document.createElement("span");
-          probSpan.className = "candidate-prob-pct";
-          probSpan.textContent = Math.round(relPct) + "%";
-          probSpan.title = "Relative probability among shown candidates";
-          candRow.appendChild(probSpan);
-        } else {
-          // Placeholder to keep alignment
-          var spacer = document.createElement("span");
-          spacer.className = "candidate-prob-bar";
-          spacer.style.opacity = "0";
-          candRow.appendChild(spacer);
-
-          var spacer2 = document.createElement("span");
-          spacer2.className = "candidate-prob-pct";
-          spacer2.style.opacity = "0";
-          spacer2.textContent = "\u2014";
-          candRow.appendChild(spacer2);
-        }
-
         candContainer.appendChild(candRow);
       }
 
@@ -517,24 +490,13 @@ var LatexPredictor = (function () {
   }
 
   /**
-   * Compute relative probability of the i-th candidate among displayed
-   * candidates using softmax over their log-prob scores.
-   */
-  function computeRelativeProb(candidates, idx) {
-    if (!candidates || candidates.length <= 1) return 100;
-    var scores = candidates.map(function (c) { return c.score; });
-    var maxScore = Math.max.apply(null, scores);
-    var exps = scores.map(function (s) { return Math.exp(s - maxScore); });
-    var sumExps = exps.reduce(function (a, b) { return a + b; }, 0);
-    if (sumExps <= 0) return 100 / candidates.length;
-    return (exps[idx] / sumExps) * 100;
-  }
-
-  /**
    * Clear all predictions from the panel.
    */
   function clearPredictions() {
-    if (_predictionPanel) _predictionPanel.innerHTML = "";
+    if (_predictionPanel) {
+      _predictionPanel.innerHTML = "";
+      _predictionPanel.classList.remove("active");
+    }
   }
 
   // ── Toast helper ────────────────────────────────────────────────────

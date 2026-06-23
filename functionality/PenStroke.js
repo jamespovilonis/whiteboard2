@@ -1,6 +1,6 @@
 // PenStroke.js
 // Two-canvas architecture for real-time perfect-freehand smoothing.
-// Includes checkpoint-based undo/redo (saves full state every N strokes, deltas between).
+// Per-stroke-snapshot undo/redo (each stroke creates a full snapshot).
 
 // ---- Canvas setup ----
 var bgCanvas = document.getElementById("whiteboard-bg");
@@ -16,93 +16,53 @@ var dpr = window.devicePixelRatio || 1;
 window.strokeSaver = new StrokeDataSaver();
 var strokeSaver = window.strokeSaver;
 
-// ── Checkpoint-based undo/redo ─────────────────────────────────────
-// Saves a full snapshot every CHECKPOINT_INTERVAL strokes. Between snapshots,
-// records delta operations [action, index] for undo/redo traversal.
-var CHECKPOINT_INTERVAL = 10; // full snapshot every N strokes
-var _undoStack = [];          // array of {snapshot: strokesArr, strokeCount: int}
-var _redoStack = [];          // same structure as _undoStack
-var _deltaBuffer = [];        // deltas since last checkpoint (reset when a new one is written)
-var _strokeCounterForCheckpoints = 0;
+// ── Per-stroke undo/redo ──────────────────────────────────────────
+// Each stroke (or clear) pushes a full snapshot onto the undo stack.
+// Undo pops the last snapshot and pushes the current state onto the redo stack.
+// Redo reverses the operation.
+var UNDO_MAX = 100;
+var _undoStack = [];          // array of {snapshot: strokesArr}
+var _redoStack = [];          // same structure
 
-function pushCheckpoint() {
+function pushUndoState() {
   var curStrokes = strokeSaver.getStrokes();
   var snapshot = JSON.parse(JSON.stringify(curStrokes));
-  _undoStack.push({ snapshot: snapshot, strokeCount: strokeSaver.getStrokeCount() });
-  if (_undoStack.length > 50) _undoStack.shift();
-  // Clear delta buffer — we jumped to a new checkpoint
-  _deltaBuffer = [];
+  _undoStack.push({
+    snapshot: snapshot,
+    strokeCounter: strokeSaver.strokeCounter,
+    strokeStartTimes: Array.from(strokeSaver.strokeStartTimes)
+  });
+  if (_undoStack.length > UNDO_MAX) _undoStack.shift();
+  // Any new action invalidates the redo stack
+  _redoStack = [];
 }
 
-function pushDelta(action, index) {
-  _deltaBuffer.push({ action: action, index: index });
+function restoreState(entry) {
+  strokeSaver.strokes = JSON.parse(JSON.stringify(entry.snapshot));
+  strokeSaver.currentStroke = null;
+  strokeSaver.strokeCounter = entry.strokeCounter || 0;
+  strokeSaver.strokeStartTimes = new Map(entry.strokeStartTimes || []);
 }
 
 /**
- * Undo: traverse deltas backward from the top of _undoStack.
- * If no deltas exist at that level, fall back to the previous checkpoint.
+ * Undo: pop the last snapshot off the undo stack and restore it.
+ * The current state is pushed onto the redo stack first.
  */
 function undoStroke() {
   if (_undoStack.length === 0) return;
-  var currentTop = _undoStack[_undoStack.length - 1];
 
-  // First try deltas (reverse order)
-  for (var d = _deltaBuffer.length - 1; d >= 0; d--) {
-    var delta = _deltaBuffer[d];
-    if (delta.action === "add") {
-      // Remove stroke at this index
-      var strokes = JSON.parse(JSON.stringify(strokeSaver.getStrokes()));
-      if (delta.index < strokes.length) {
-        strokes.splice(delta.index, 1);
-        _undoStack.pop();
-        _redoStack.push({ snapshot: strokes, strokeCount: strokes.length });
-        _deltaBuffer.splice(d, 1); // remove this delta from buffer
-        strokeSaver.strokes = strokes;
-        strokeSaver.currentStroke = null;
-        redrawAllStrokes();
-        if (typeof IdentifyLine !== "undefined") IdentifyLine.groupStrokesIntoLines();
-        if (typeof LinesRasterizer !== "undefined") {
-          LinesRasterizer.clearCache();
-          LinesRasterizer.rasterizeAllLines();
-        }
-        return;
-      }
-    } else if (delta.action === "remove") {
-      // Restore a removed stroke — apply it back to a deeper snapshot
-      var strokes = JSON.parse(JSON.stringify(strokeSaver.getStrokes()));
-      strokes.splice(delta.index, 0, delta.stroke);
-      _undoStack.pop();
-      _redoStack.push({ snapshot: JSON.parse(JSON.stringify(strokes)), strokeCount: strokes.length });
-      _deltaBuffer.splice(d, 1);
-      strokeSaver.strokes = strokes;
-      strokeSaver.currentStroke = null;
-      redrawAllStrokes();
-      if (typeof IdentifyLine !== "undefined") IdentifyLine.groupStrokesIntoLines();
-      if (typeof LinesRasterizer !== "undefined") {
-        LinesRasterizer.clearCache();
-        LinesRasterizer.rasterizeAllLines();
-      }
-      return;
-    }
-  }
+  // Save current state for redo before popping
+  var curStrokes = strokeSaver.getStrokes();
+  _redoStack.push({
+    snapshot: JSON.parse(JSON.stringify(curStrokes)),
+    strokeCounter: strokeSaver.strokeCounter,
+    strokeStartTimes: Array.from(strokeSaver.strokeStartTimes)
+  });
+  if (_redoStack.length > UNDO_MAX) _redoStack.shift();
 
-  // No deltas at top level — fall back to previous checkpoint
-  _undoStack.pop();
-  if (_undoStack.length === 0) {
-    strokeSaver.strokes = [];
-    strokeSaver.currentStroke = null;
-    redrawAllStrokes();
-    if (typeof LinesRasterizer !== "undefined") {
-      LinesRasterizer.clearCache();
-      LinesRasterizer.rasterizeAllLines();
-    }
-    return;
-  }
+  var entry = _undoStack.pop();
+  restoreState(entry);
 
-  var prevState = _undoStack[_undoStack.length - 1];
-  strokeSaver.strokes = JSON.parse(JSON.stringify(prevState.snapshot));
-  strokeSaver.currentStroke = null;
-  _deltaBuffer = []; // clear deltas when jumping to checkpoint
   redrawAllStrokes();
   if (typeof IdentifyLine !== "undefined") IdentifyLine.groupStrokesIntoLines();
   if (typeof LinesRasterizer !== "undefined") {
@@ -112,18 +72,23 @@ function undoStroke() {
 }
 
 /**
- * Redo: apply the top of _redoStack forward.
+ * Redo: restore the last undone state from the redo stack.
  */
 function redoStroke() {
   if (_redoStack.length === 0) return;
-  var next = _redoStack[_redoStack.length - 1];
-  strokeSaver.strokes = JSON.parse(JSON.stringify(next.snapshot));
-  strokeSaver.currentStroke = null;
 
-  // Push current state onto undo stack before applying redo
-  pushCheckpoint();
+  // Save current state for undo before applying redo
+  var curStrokes = strokeSaver.getStrokes();
+  _undoStack.push({
+    snapshot: JSON.parse(JSON.stringify(curStrokes)),
+    strokeCounter: strokeSaver.strokeCounter,
+    strokeStartTimes: Array.from(strokeSaver.strokeStartTimes)
+  });
+  if (_undoStack.length > UNDO_MAX) _undoStack.shift();
 
-  _redoStack.pop();
+  var entry = _redoStack.pop();
+  restoreState(entry);
+
   redrawAllStrokes();
   if (typeof IdentifyLine !== "undefined") IdentifyLine.groupStrokesIntoLines();
   if (typeof LinesRasterizer !== "undefined") {
@@ -238,6 +203,7 @@ function requestLiveStroke(rawPts, color) {
 
 fgCanvas.addEventListener("pointerdown", function (e) {
   if (!penBtn?.classList.contains("active")) return;
+  e.preventDefault();
   isDrawing = true;
   rawPoints = [];
   rawPoints.push({ x: e.offsetX, y: e.offsetY, pressure: e.pressure || 0.5 });
@@ -251,34 +217,35 @@ fgCanvas.addEventListener("pointermove", function (e) {
   strokeSaver.addPoint(e.offsetX, e.offsetY, e.pressure || 0.5, fgCanvas.clientWidth, fgCanvas.clientHeight);
 });
 
+function finalizeCurrentStroke() {
+  if (!isDrawing) return;
+  var color = window.penColor || "#000000";
+
+  // Push undo state BEFORE adding the stroke so undoing
+  // restores the state without this stroke.
+  pushUndoState();
+
+  if (rawPoints.length === 1) {
+    var dotSize = strokeSmoother.opts.size || 12;
+    drawDot(rawPoints[0].x, rawPoints[0].y, color);
+    var dotOutline = dotStrokeOutline(rawPoints[0].x, rawPoints[0].y, dotSize);
+    strokeSaver.endStroke(dotOutline, color);
+  } else if (rawPoints.length >= 2) {
+    var outline = strokeSmoother.smooth(rawPoints);
+    finalizeStroke(rawPoints, color);
+    strokeSaver.endStroke(outline, color);
+  }
+
+  if (typeof IdentifyLine !== "undefined") {
+    IdentifyLine.finalizeStroke();
+  }
+  isDrawing = false;
+  rawPoints = [];
+}
+
 fgCanvas.addEventListener("pointerup", function () {
   if (isDrawing) {
-    // Check if it's time for a checkpoint
-    _strokeCounterForCheckpoints++;
-    if (_strokeCounterForCheckpoints >= CHECKPOINT_INTERVAL) {
-      pushCheckpoint();
-      _strokeCounterForCheckpoints = 0;
-    } else {
-      // Store delta instead of full snapshot
-      var strokes = strokeSaver.getStrokes();
-      pushDelta("add", strokes.length - 1);
-    }
-
-    var color = window.penColor || "#000000";
-    if (rawPoints.length === 1) {
-      var dotSize = strokeSmoother.opts.size || 12;
-      drawDot(rawPoints[0].x, rawPoints[0].y, color);
-      var dotOutline = dotStrokeOutline(rawPoints[0].x, rawPoints[0].y, dotSize);
-      strokeSaver.endStroke(dotOutline, color);
-    } else if (rawPoints.length >= 2) {
-      var outline = strokeSmoother.smooth(rawPoints);
-      finalizeStroke(rawPoints, color);
-      strokeSaver.endStroke(outline, color);
-    }
-
-    if (typeof IdentifyLine !== "undefined") {
-      IdentifyLine.finalizeStroke();
-    }
+    finalizeCurrentStroke();
   }
   isDrawing = false;
   rawPoints = [];
@@ -286,30 +253,7 @@ fgCanvas.addEventListener("pointerup", function () {
 
 fgCanvas.addEventListener("pointerleave", function () {
   if (isDrawing) {
-    _strokeCounterForCheckpoints++;
-    if (_strokeCounterForCheckpoints >= CHECKPOINT_INTERVAL) {
-      pushCheckpoint();
-      _strokeCounterForCheckpoints = 0;
-    } else {
-      var strokes = strokeSaver.getStrokes();
-      pushDelta("add", strokes.length - 1);
-    }
-
-    var color = window.penColor || "#000000";
-    if (rawPoints.length === 1) {
-      var dotSize = strokeSmoother.opts.size || 12;
-      drawDot(rawPoints[0].x, rawPoints[0].y, color);
-      var dotOutline = dotStrokeOutline(rawPoints[0].x, rawPoints[0].y, dotSize);
-      strokeSaver.endStroke(dotOutline, color);
-    } else if (rawPoints.length >= 2) {
-      var outline = strokeSmoother.smooth(rawPoints);
-      finalizeStroke(rawPoints, color);
-      strokeSaver.endStroke(outline, color);
-    }
-
-    if (typeof IdentifyLine !== "undefined") {
-      IdentifyLine.finalizeStroke();
-    }
+    finalizeCurrentStroke();
   }
   isDrawing = false;
   rawPoints = [];
@@ -324,11 +268,10 @@ window.redoStroke = redoStroke;
 // Clear all strokes from the canvas
 window.clearAllStrokes = function () {
   if (strokeSaver.getStrokes().length === 0) return;
-  pushCheckpoint(); // save before clearing
+  pushUndoState(); // save before clearing
   strokeSaver.clear();
   bgCtx.clearRect(0, 0, bgCanvas.width / dpr, bgCanvas.height / dpr);
   redrawForeground();
-  _deltaBuffer = [];
   if (typeof IdentifyLine !== "undefined") {
     IdentifyLine.groupStrokesIntoLines();
   }
@@ -379,8 +322,11 @@ penBtn.addEventListener("click", function () {
   if (!penBtn.classList.contains("active")) {
     penBtn.classList.add("active");
     var eraserBtn = document.getElementById("eraser");
+    var mouseBtn = document.getElementById("mouse");
     if (eraserBtn) eraserBtn.classList.remove("active");
+    if (mouseBtn) mouseBtn.classList.remove("active");
     fgCanvas.style.cursor = "crosshair";
+    if (typeof updateToolbarToggleIcon === "function") updateToolbarToggleIcon();
   }
 });
 

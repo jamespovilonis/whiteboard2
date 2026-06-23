@@ -26,8 +26,7 @@
 5. If a test fails, you must read the traceback completely. Never blindly re-run the same execution command hoping for a different result. Inspect the stack trace, locate the exact file and line number causing the failure, modify the implementation, and then re-test.
 6. Keep the workspace clean. If you create temporary mock files, dummy images, or scratchpad text files to verify a feature, you must delete them before declaring the task finished. Do not leave temporary artifacts in the repository.
 
-# Tool Execution & Format Compliance
+# File Generation & Heredoc Restrictions
 
-1. You are running on a local inference engine. You must be precise with tool syntax to avoid triggering system capability warnings.
-2. ALWAYS provide every required parameter for a tool call. For example, when using `read_file` or `write_to_file`, never omit the `path` argument or leave it blank.
-3. strictly adhere to the exact XML/JSON formatting schemas required by the system. Do not improvise, truncate, or omit closing tags in your tool blocks.
+1. NEVER use shell Heredocs (`<<'EOF'`, `cat > file`) to generate or overwrite files in the terminal. Multi-line heredoc string routing routinely deadlocks pseudo-terminal (pty) input streams.
+2. ALWAYS use your native system file tools (like `write_to_file`) to create or modify code, test scripts, or configuration files. Only use the terminal to *execute* commands, never to author file contents.

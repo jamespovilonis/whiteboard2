@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Whiteboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260622">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" defer></script>
-    <script src="StrokeDataSaver.js" defer></script>
-    <script src="IdentifyLine.js" defer></script>
-    <script src="HandwritingToLatex/LinesRasterizer.js" defer></script>
-    <script src="functionality/StrokeSmoother.js" defer></script>
-    <script src="functionality/PenSizeColor.js" defer></script>
-    <script src="functionality/PenStroke.js" defer></script>
-    <script src="functionality/Eraser.js" defer></script>
-    <script src="HandwritingToLatex/LatexPredictor.js" defer></script>
+    <script src="StrokeDataSaver.js?v=20260622" defer></script>
+    <script src="IdentifyLine.js?v=20260622" defer></script>
+    <script src="HandwritingToLatex/LinesRasterizer.js?v=20260622" defer></script>
+    <script src="functionality/StrokeSmoother.js?v=20260622" defer></script>
+    <script src="functionality/PenSizeColor.js?v=20260622" defer></script>
+    <script src="functionality/PenStroke.js?v=20260622" defer></script>
+    <script src="functionality/Eraser.js?v=20260622" defer></script>
+    <script src="HandwritingToLatex/LatexPredictor.js?v=20260622" defer></script>
 </head>
 <body>
     <div class="main-layout">
@@ -100,6 +100,28 @@
     </div>
     <div id="toast" class="toast"></div>
     <script>
+        // ── Config-driven API URL ────────────────────────────────────────
+        // 1. Check URL parameter ?apiUrl=... first (for Chromebook / remote access)
+        // 2. Fall back to config.json (local default: http://localhost:8000)
+        // 3. Final fallback: http://localhost:8000
+        var configuredApiUrl = null;
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('apiUrl')) {
+            configuredApiUrl = urlParams.get('apiUrl');
+            if (typeof LatexPredictor !== 'undefined') LatexPredictor.setServerUrl(configuredApiUrl);
+        } else {
+            fetch('config.json')
+                .then(function (r) { return r.json(); })
+                .then(function (cfg) {
+                    // Empty string (same-origin) is valid — only fall back if key is missing
+                    configuredApiUrl = cfg.apiUrl !== undefined ? cfg.apiUrl : '';
+                    if (typeof LatexPredictor !== 'undefined') LatexPredictor.setServerUrl(configuredApiUrl);
+                })
+                .catch(function () {
+                    // config.json missing — stay with LatexPredictor's default
+                });
+        }
+
         // Wire up the recognize button to call LatexPredictor.recognize()
         document.addEventListener('DOMContentLoaded', function () {
             // Keyboard shortcuts
@@ -132,6 +154,7 @@
                         mouseBtn.classList.add('active');
                         var canvas = document.getElementById('whiteboard');
                         if (canvas) canvas.style.cursor = 'grab';
+                        if (typeof updateToolbarToggleIcon === 'function') updateToolbarToggleIcon();
                         showToast('Pan tool selected (not yet implemented)');
                     }
                 }
@@ -160,6 +183,23 @@
                     }
                 }
             });
+
+            // ---- Mouse tool button ----
+            var mouseBtn = document.getElementById('mouse');
+            if (mouseBtn) {
+                mouseBtn.addEventListener('click', function () {
+                    // Deactivate pen/eraser and activate mouse
+                    var penBtn = document.getElementById('pen');
+                    var eraserBtn = document.getElementById('eraser');
+                    if (penBtn) penBtn.classList.remove('active');
+                    if (eraserBtn) eraserBtn.classList.remove('active');
+                    mouseBtn.classList.add('active');
+                    var canvas = document.getElementById('whiteboard');
+                    if (canvas) canvas.style.cursor = 'grab';
+                    if (typeof updateToolbarToggleIcon === 'function') updateToolbarToggleIcon();
+                    showToast('Pan tool selected (not yet implemented)');
+                });
+            }
 
             // ---- Toolbar button wiring ----
             var recognizeBtn = document.getElementById('recognize');
@@ -201,6 +241,20 @@
                 });
             }
         });
+
+        function updateToolbarToggleIcon() {
+          var toggleImg = document.querySelector('.toolbar-toggle img');
+          if (!toggleImg) return;
+          if (document.getElementById('pen')?.classList.contains('active')) {
+            toggleImg.src = 'icons/pencil.png';
+          } else if (document.getElementById('eraser')?.classList.contains('active')) {
+            toggleImg.src = 'icons/eraser.png';
+          } else if (document.getElementById('mouse')?.classList.contains('active')) {
+            toggleImg.src = 'icons/cursor.png';
+          } else {
+            toggleImg.src = 'icons/pencil.png'; // default
+          }
+        }
 
         function showToast(msg) {
             var toast = document.getElementById('toast');

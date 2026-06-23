@@ -1,0 +1,27 @@
+# Ground Truth LaTeX Equations for Whiteboard OCR Testing
+# Format: NAME \t LATEX \t CATEGORY (simple / complex)
+# These equations are what we draw onto the whiteboard and expect the OCR models to recognize.
+
+# ---- Simple equations (basic symbols, short expressions) ----
+simple_x_equals_y+z	x = y + z	simple
+simple_a_squared_plus_b_squared	c = a^2 + b^2	simple
+simple_pythagorean	a^2 + b^2 = c^2	simple
+simple_integral	f(x) \, dx = 0	simple
+simple_sum sigma	\sum_{i=1}^{n} x_i	simple
+simple_square_root	x = \sqrt{y}	simple
+simple_fractions	\frac{a}{b} = c	simple
+simple_less_than	a < b + c	simple
+simple_plus_minus	x = 2 \pm 3	simple
+simple_times_divide	y = a \cdot \frac{b}{c}	simple
+
+# ---- Complex equations (multi-part, nested structures) ----
+complex_quadratic	x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}	complex
+complex_eulers	e^{i\pi} + 1 = 0	complex
+complex_gauss	int_{-\infty}^{\infty} e^{-x^2} \, dx = \sqrt{\pi}	complex
+complex_sum_powered	\sum_{k=1}^{\infty} \frac{1}{k^2} = \frac{\pi^2}{6}	complex
+complex_derivational	\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0	complex
+complex_limit	\lim_{n \to \infty} \left(1 + \frac{1}{n}\right)^n = e	complex
+complex_matrix det	\det\begin{pmatrix} a & b \\ c & d \end{pmatrix} = ad - bc	complex
+complex_nested_fraction	\frac{1}{\frac{1}{a} + \frac{1}{b}} = \frac{ab}{a+b}	complex
+complex_vector_grad	\nabla \cdot \mathbf{E} = \frac{\rho}{\varepsilon_0}	complex
+complex_taylor	f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!} (x-a)^n	complex

@@ -22,6 +22,7 @@ import uvicorn
 import yaml
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, Response
 from PIL import Image
 from torchvision.transforms import ToTensor
 
@@ -617,5 +618,29 @@ async def recognize(
     return {"candidates": candidates, "top": top}
 
 
+# ── Catch-all: serve static frontend files for unrecognized paths ──────
+# This must be defined AFTER all API routes so they take priority.
+
+FRONTEND_ROOT = Path(__file__).resolve().parent.parent
+
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    """Serve static frontend files for any path not matching an API route.
+
+    Disables browser caching so edits are picked up immediately (no
+    hard-refresh needed on the Chromebook).
+    """
+    file_path = FRONTEND_ROOT / full_path
+    if file_path.is_file():
+        return FileResponse(str(file_path), headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
+    # Fall back to index.html for SPA-like navigation (e.g., / -> index.html)
+    index_path = FRONTEND_ROOT / "index.html"
+    if index_path.is_file():
+        return FileResponse(str(index_path), headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
+    raise HTTPException(404, "Not found")
+
+
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+    frontend_root = Path(__file__).resolve().parent.parent
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True, reload_dirs=[str(frontend_root)])
