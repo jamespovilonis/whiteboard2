@@ -131,10 +131,13 @@ class LitCoMER(pl.LightningModule):
         return self.comer_model.beam_search(img, mask, **self.hparams)
 
     def approximate_joint_search_topk(
-        self, img: FloatTensor, mask: LongTensor, k: int = 3
+        self, img: FloatTensor, mask: LongTensor, k: int = 3,
+        deadline: float = None
     ) -> List[List[Hypothesis]]:
         """Return top-k hypotheses per image using beam search."""
-        return self.comer_model.beam_search_topk(img, mask, **self.hparams, k=k)
+        return self.comer_model.beam_search_topk(
+            img, mask, **self.hparams, k=k, deadline=deadline
+        )
 
     def configure_optimizers(self):
         optimizer = optim.SGD(

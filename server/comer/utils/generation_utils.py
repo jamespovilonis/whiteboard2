@@ -1,4 +1,5 @@
 from abc import abstractmethod
+import time
 from typing import List, Tuple
 
 import pytorch_lightning as pl
@@ -17,6 +18,11 @@ from .beam_search import BeamSearchScorer
 
 
 class DecodeModel(pl.LightningModule):
+    @staticmethod
+    def _raise_if_deadline_exceeded(deadline: float = None) -> None:
+        if deadline is not None and time.monotonic() >= deadline:
+            raise TimeoutError("CoMER recognition deadline exceeded")
+
     @abstractmethod
     def transform(
         self, src: List[FloatTensor], src_mask: List[LongTensor], input_ids: LongTensor
@@ -157,6 +163,7 @@ class DecodeModel(pl.LightningModule):
         early_stopping: bool,
         temperature: float,
         k: int,
+        deadline: float = None,
     ) -> List[List[Hypothesis]]:
         """run beam search and return top-k hypotheses per batch item
 
@@ -212,7 +219,10 @@ class DecodeModel(pl.LightningModule):
             beam_size=beam_size,
             max_len=max_len,
             temperature=temperature,
+            deadline=deadline,
         )
+
+        self._raise_if_deadline_exceeded(deadline)
 
         for i in range(half_bb_size, batch_beam_size):
             hyps[i] = torch.flip(hyps[i], dims=[0])
@@ -228,6 +238,7 @@ class DecodeModel(pl.LightningModule):
         out = torch.cat((l2r_out, r2l_out), dim=0)
 
         rev_scores = self._rate(src, src_mask, tgt, out, alpha, temperature)
+        self._raise_if_deadline_exceeded(deadline)
         rev_scores = torch.cat(
             (rev_scores[half_bb_size:], rev_scores[:half_bb_size]), dim=0
         )
@@ -270,6 +281,7 @@ class DecodeModel(pl.LightningModule):
         beam_size: int,
         max_len: int,
         temperature: float,
+        deadline: float = None,
     ) -> Tuple[List[LongTensor], FloatTensor]:
         """inner beam search
 
@@ -295,6 +307,7 @@ class DecodeModel(pl.LightningModule):
         beam_scores = torch.zeros(batch_size, dtype=torch.float, device=self.device)
 
         while cur_len < max_len and not beam_scorer.is_done():
+            self._raise_if_deadline_exceeded(deadline)
             next_token_logits = (
                 self.transform(src, src_mask, input_ids)[:, -1, :] / temperature
             )
@@ -339,6 +352,7 @@ class DecodeModel(pl.LightningModule):
 
             cur_len += 1
 
+        self._raise_if_deadline_exceeded(deadline)
         return beam_scorer.finalize(input_ids, beam_scores)
 
     def _rate(

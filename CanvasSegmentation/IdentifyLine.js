@@ -1,12 +1,17 @@
 // IdentifyLine.js - Groups strokes into lines based on dynamic catchment zones
-// Uses proportional expansion: ±50% width horizontally, ±10% height vertically
+// Produces loose expanded-box groups and stricter vertical-overlap groups.
 
 var IdentifyLine = (function () {
+  var STRICT_MIN_VERTICAL_OVERLAP_RATIO = 0.15;
+
   // Current line groups
   var _lineGroups = [];
+  var _lineCandidates = [];
+  var _linePartitions = { loose: [], strict: [] };
 
   // Track if line boxes should be visible
   var _showBoxes = false;
+  var _active = true;
 
   // Temporary box overlay canvas (separate layer to avoid redrawing strokes)
   var boxCanvas = null;
@@ -31,6 +36,7 @@ var IdentifyLine = (function () {
     // Listen for 'b' key to toggle line boxes
     document.addEventListener('keydown', function (e) {
       if ((e.key === 'b' || e.key === 'B') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (!_active) return;
         var tag = document.activeElement?.tagName || '';
         if (tag === 'INPUT' || tag === 'TEXTAREA') return;
         toggleBoxes();
@@ -57,7 +63,7 @@ var IdentifyLine = (function () {
   /**
    * Compute the expanded bbox for a set of strokes.
    * Expansion is proportional to the combined bounding box of those strokes:
-   *   - Horizontal: ±50% of width
+   *   - Horizontal: ±35% of width
    *   - Vertical: ±10% of height
    */
   function computeExpandedBbox(strokes) {
@@ -77,7 +83,7 @@ var IdentifyLine = (function () {
     var height = yMax - yMin;
 
     // Proportional catchment zones
-    var hPad = width * 0.5;
+    var hPad = width * 0.35;
     var vPad = Math.max(height * 0.10, 10); // minimum 10px vertical padding for visibility
 
     return {
@@ -96,75 +102,157 @@ var IdentifyLine = (function () {
     return !(a.xMax < b.xMin || a.xMin > b.xMax || a.yMax < b.yMin || a.yMin > b.yMax);
   }
 
-  /**
-   * Main grouping algorithm:
-   * Start each stroke in its own group, then iteratively merge any two groups
-   * whose expanded catchment zones overlap. This handles forwards, backwards,
-   * and bridge (transitive) merges: a new stroke that overlaps two previously
-   * separate groups will fuse them all into one line.
-   */
-  function groupStrokesIntoLines() {
-    var allStrokes = strokeSaver.getStrokes();
-    if (!allStrokes || allStrokes.length === 0) {
-      _lineGroups = [];
-      return _lineGroups;
-    }
+  function verticalOverlapRatio(a, b) {
+    if (!a || !b) return 0;
+    var overlap = Math.max(0, Math.min(a.yMax, b.yMax) - Math.max(a.yMin, b.yMin));
+    var smallerHeight = Math.min(a.yMax - a.yMin, b.yMax - b.yMin);
+    return smallerHeight > 0 ? overlap / smallerHeight : 0;
+  }
 
-    // Seed one group per stroke (skip strokes without canvasBbox)
-    _lineGroups = [];
+  function groupsCanMerge(a, b, profile) {
+    if (!bboxesOverlap(a.expandedBbox, b.expandedBbox)) return false;
+    if (profile === 'strict') {
+      return verticalOverlapRatio(a.tightBbox, b.tightBbox) >=
+        STRICT_MIN_VERTICAL_OVERLAP_RATIO;
+    }
+    return true;
+  }
+
+  function strokeSetKey(strokes) {
+    var ids = [];
+    for (var i = 0; i < strokes.length; i++) {
+      ids.push(String(strokes[i].id));
+    }
+    ids.sort();
+    return ids.join('|');
+  }
+
+  function finalizeGroups(groups, allStrokes, profile) {
+    for (var g = 0; g < groups.length; g++) {
+      var group = groups[g];
+      var idSet = {};
+      for (var s = 0; s < group.strokes.length; s++) {
+        idSet[group.strokes[s].id] = true;
+      }
+
+      var ordered = [];
+      for (var t = 0; t < allStrokes.length; t++) {
+        if (idSet[allStrokes[t].id]) ordered.push(allStrokes[t]);
+      }
+      group.strokes = ordered;
+      group.profile = profile;
+      group.strokeIds = ordered.map(function (stroke) { return String(stroke.id); });
+      group.strokeSetKey = strokeSetKey(ordered);
+      group.id = profile + '_' + group.strokeSetKey;
+      group.expandedBbox = computeExpandedBbox(group.strokes);
+      group.tightBbox = computeTightBbox(group.strokes);
+    }
+    return groups;
+  }
+
+  function buildGroups(allStrokes, profile) {
+    var groups = [];
     for (var i = 0; i < allStrokes.length; i++) {
       var stroke = allStrokes[i];
       if (!stroke.canvasBbox) continue;
-      _lineGroups.push({
+      groups.push({
         strokes: [stroke],
         expandedBbox: computeExpandedBbox([stroke]),
         tightBbox: computeTightBbox([stroke])
       });
     }
 
-    // Iteratively merge any overlapping groups until stable
     var merged = true;
     while (merged) {
       merged = false;
-      for (var a = 0; a < _lineGroups.length; a++) {
-        for (var b = a + 1; b < _lineGroups.length; b++) {
-          if (bboxesOverlap(_lineGroups[a].expandedBbox, _lineGroups[b].expandedBbox)) {
-            // Merge group b into group a
-            _lineGroups[a].strokes = _lineGroups[a].strokes.concat(_lineGroups[b].strokes);
-            // Recompute bboxes for the merged group (catchment zone may now be larger)
-            _lineGroups[a].expandedBbox = computeExpandedBbox(_lineGroups[a].strokes);
-            _lineGroups[a].tightBbox = computeTightBbox(_lineGroups[a].strokes);
-            // Remove group b
-            _lineGroups.splice(b, 1);
+      for (var a = 0; a < groups.length; a++) {
+        for (var b = a + 1; b < groups.length; b++) {
+          if (groupsCanMerge(groups[a], groups[b], profile)) {
+            groups[a].strokes = groups[a].strokes.concat(groups[b].strokes);
+            groups[a].expandedBbox = computeExpandedBbox(groups[a].strokes);
+            groups[a].tightBbox = computeTightBbox(groups[a].strokes);
+            groups.splice(b, 1);
             merged = true;
-            // Restart scan: the enlarged catchment may overlap a third group
-            a = _lineGroups.length; // break outer loop
+            a = groups.length;
             break;
           }
         }
       }
     }
+    return finalizeGroups(groups, allStrokes, profile);
+  }
 
-    // Rebuild stroke arrays in temporal order and assign final ids/bboxes
-    for (var g = 0; g < _lineGroups.length; g++) {
-      var group = _lineGroups[g];
-      // Build a set of stroke ids in this group for O(1) lookup
-      var idSet = {};
-      for (var s = 0; s < group.strokes.length; s++) {
-        idSet[group.strokes[s].id] = true;
+  function buildCandidateSet(looseGroups, strictGroups) {
+    var byStrokeSet = {};
+    var candidates = [];
+    var partitions = { loose: [], strict: [] };
+
+    function addGroup(group, profile) {
+      var key = group.strokeSetKey;
+      var candidate = byStrokeSet[key];
+      if (!candidate) {
+        candidate = {
+          id: 'candidate_' + key,
+          candidateId: 'candidate_' + key,
+          strokeSetKey: key,
+          strokeIds: group.strokeIds.slice(),
+          strokes: group.strokes,
+          tightBbox: group.tightBbox,
+          expandedBbox: group.expandedBbox,
+          profiles: [],
+          conflicts: []
+        };
+        byStrokeSet[key] = candidate;
+        candidates.push(candidate);
       }
-      // Rebuild in temporal order from allStrokes
-      var ordered = [];
-      for (var t = 0; t < allStrokes.length; t++) {
-        if (idSet[allStrokes[t].id]) {
-          ordered.push(allStrokes[t]);
+      if (candidate.profiles.indexOf(profile) === -1) candidate.profiles.push(profile);
+      partitions[profile].push(candidate.candidateId);
+    }
+
+    for (var i = 0; i < looseGroups.length; i++) addGroup(looseGroups[i], 'loose');
+    for (var j = 0; j < strictGroups.length; j++) addGroup(strictGroups[j], 'strict');
+
+    for (var a = 0; a < candidates.length; a++) {
+      var strokeLookup = {};
+      for (var s = 0; s < candidates[a].strokeIds.length; s++) {
+        strokeLookup[candidates[a].strokeIds[s]] = true;
+      }
+      for (var b = a + 1; b < candidates.length; b++) {
+        var conflicts = false;
+        for (var k = 0; k < candidates[b].strokeIds.length; k++) {
+          if (strokeLookup[candidates[b].strokeIds[k]]) {
+            conflicts = true;
+            break;
+          }
+        }
+        if (conflicts) {
+          candidates[a].conflicts.push(candidates[b].candidateId);
+          candidates[b].conflicts.push(candidates[a].candidateId);
         }
       }
-      group.strokes = ordered;
-      group.id = 'line_' + g;
-      group.expandedBbox = computeExpandedBbox(group.strokes);
-      group.tightBbox = computeTightBbox(group.strokes);
     }
+
+    _lineCandidates = candidates;
+    _linePartitions = partitions;
+  }
+
+  /**
+   * Build both complete grouping views, then expose their deduplicated union as
+   * recognition candidates. The loose groups remain the legacy display groups.
+   */
+  function groupStrokesIntoLines() {
+    var allStrokes = strokeSaver.getStrokes();
+    if (!allStrokes || allStrokes.length === 0) {
+      _lineGroups = [];
+      _lineCandidates = [];
+      _linePartitions = { loose: [], strict: [] };
+      return _lineGroups;
+    }
+
+    var looseGroups = buildGroups(allStrokes, 'loose');
+    var strictGroups = buildGroups(allStrokes, 'strict');
+    _lineGroups = looseGroups;
+    buildCandidateSet(looseGroups, strictGroups);
 
     return _lineGroups;
   }
@@ -240,6 +328,7 @@ var IdentifyLine = (function () {
    * Toggle visibility of line boxes.
    */
   function toggleBoxes() {
+    if (!_active) return;
     _showBoxes = !_showBoxes;
     if (_showBoxes) {
       // Group strokes first if not already done
@@ -270,6 +359,34 @@ var IdentifyLine = (function () {
    */
   function getLineGroups() {
     return _lineGroups;
+  }
+
+  function getLineCandidates() {
+    return _lineCandidates;
+  }
+
+  function getLinePartitions() {
+    return {
+      loose: _linePartitions.loose.slice(),
+      strict: _linePartitions.strict.slice()
+    };
+  }
+
+  function setStrictMinVerticalOverlapRatio(value) {
+    var parsed = Number(value);
+    if (!isFinite(parsed) || parsed < 0 || parsed > 1) return;
+    STRICT_MIN_VERTICAL_OVERLAP_RATIO = parsed;
+    if (typeof strokeSaver !== 'undefined') groupStrokesIntoLines();
+  }
+
+  function getStrictMinVerticalOverlapRatio() {
+    return STRICT_MIN_VERTICAL_OVERLAP_RATIO;
+  }
+
+  function setActive(active) {
+    _active = !!active;
+    if (boxCanvas) boxCanvas.style.display = _active ? 'block' : 'none';
+    if (!_active && boxCtx) boxCtx.clearRect(0, 0, boxCanvas.width, boxCanvas.height);
   }
 
   /**
@@ -320,7 +437,16 @@ var IdentifyLine = (function () {
     drawLineBoxes: drawLineBoxes,
     toggleBoxes: toggleBoxes,
     getLineGroups: getLineGroups,
+    getLineCandidates: getLineCandidates,
+    getLinePartitions: getLinePartitions,
+    setStrictMinVerticalOverlapRatio: setStrictMinVerticalOverlapRatio,
+    getStrictMinVerticalOverlapRatio: getStrictMinVerticalOverlapRatio,
+    setActive: setActive,
     getLinesForRecognition: getLinesForRecognition,
-    computeExpandedBbox: computeExpandedBbox
+    computeExpandedBbox: computeExpandedBbox,
+    verticalOverlapRatio: verticalOverlapRatio
   };
 })();
+
+// Stable reference used when runtime configuration switches segmentation modes.
+var IdentifyLineGeometric = IdentifyLine;

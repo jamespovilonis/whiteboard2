@@ -16,8 +16,9 @@ from pathlib import Path
 try:
     from playwright.sync_api import sync_playwright
 except ImportError as e:
-    print("Playwright not installed. Run: pip install playwright && playwright install chromium")
-    sys.exit(1)
+    sync_playwright = None
+
+from browser_canvas_bridge import draw_latex_equation as paste_latex_equation
 
 
 # ---------- Character Stroke Definitions ----------
@@ -99,6 +100,8 @@ EQUATIONS = [
     ("simple_fraction", "a / b = c", r"\frac { a } { b } = c", "simple"),
     ("simple_times", "y = a * b / c", r"y = a \cdot \frac { b } { c }", "simple"),
     ("simple_exponent", "c = a 2 + b 2", r"c = a ^ { 2 } + b ^ { 2 }", "simple"),
+    ("complex_fraction_rational_equation", "1 / x 2 - 3 = 1", r"\frac { 1 } { x ^ { 2 } - 3 } = 1", "complex"),
+    ("complex_radical_linear_equation", "/ x + 1 + 8 = 1 2", r"\sqrt { x + 1 } + 8 = 12", "complex"),
     ("complex_quadratic", "x = - b + - / b 2 - 4 a c / 2 a", r"x = \frac { - b \pm \sqrt { b ^ { 2 } - 4 a c } } { 2 a }", "complex"),
     ("complex_eulers", "e i + 1 = 0", r"e ^ { i \pi } + 1 = 0", "complex"),
     ("complex_limit", "l i m n ( 1 + 1 / n ) n = e", r"\lim _ { n \to \infty } ( 1 + \frac { 1 } { n } ) ^ { n } = e", "complex"),
@@ -112,7 +115,8 @@ def render_equation(chars_str, origin_x, origin_y, char_w=60, char_h=80, gap=8):
     x = origin_x
     for ch in chars_str:
         if ch == " ":
-            x += char_w * 0.5 + gap
+            # Spaces make fixtures readable; normal character spacing already
+            # leaves enough separation for the handwriting line grouper.
             continue
         ch_strokes = CHAR_STROKES.get(ch, [])
         for stroke in ch_strokes:
@@ -125,7 +129,8 @@ def render_equation(chars_str, origin_x, origin_y, char_w=60, char_h=80, gap=8):
 def draw_equation(page, chars_str, cw=1400, ch=800):
     """Inject stroke data into the browser whiteboard for an equation string."""
     char_w, char_h, gap = 60, 80, 8
-    total_w = len(chars_str) * char_w + (len(chars_str) - 1) * gap
+    visible_chars = len(chars_str.replace(" ", ""))
+    total_w = visible_chars * char_w + max(0, visible_chars - 1) * gap
     origin_x = max(40, (cw - total_w) // 2)
     origin_y = max(60, (ch - char_h) // 2)
     strokes = render_equation(chars_str, origin_x, origin_y, char_w, char_h, gap)
@@ -145,7 +150,8 @@ def draw_equation(page, chars_str, cw=1400, ch=800):
             for (var pi = 1; pi < rawPts.length; pi++) {{
                 strokeSaver.addPoint(rawPts[pi][0], rawPts[pi][1], 0.5, cw, ch);
             }}
-            var outline = strokeSmoother.smooth(rawPts);
+            var smootherPts = rawPts.map(function(pt) {{ return {{x: pt[0], y: pt[1]}}; }});
+            var outline = strokeSmoother.smooth(smootherPts);
             strokeSaver.endStroke(outline, '#000000');
         }}
 
@@ -157,6 +163,11 @@ def draw_equation(page, chars_str, cw=1400, ch=800):
     }})();
     """
     page.evaluate(js)
+
+
+def draw_latex_equation(page, latex, seed=0, cw=1400, ch=800):
+    """Render LaTeX as synthetic handwriting and paste it into the whiteboard."""
+    return paste_latex_equation(page, latex, seed=seed)
 
 
 def clear_whiteboard(page):
@@ -270,16 +281,29 @@ def run_tests(playwright, headless=True, category=None):
     print("Whiteboard loaded.\n")
 
     results = []
-    for idx, (name, char_str, _, cat) in enumerate(tests, 1):
+    for idx, (name, char_str, latex, cat) in enumerate(tests, 1):
         print(f"[{idx}/{len(tests)}] {name} ({cat})")
         clear_whiteboard(page)
-        draw_equation(page, char_str)
+        board = draw_latex_equation(page, latex, seed=idx)
+        rendered = board.lines[0]
         time.sleep(0.5)
         trigger_recognition(page)
         predictions = extract_predictions(page)
-        gt = ground_truth.get(name, "")
+        gt = ground_truth.get(name, latex)
 
-        item = {"name": name, "category": cat, "char_string": char_str, "ground_truth": gt, "predictions": {}}
+        item = {
+            "name": name,
+            "category": cat,
+            "char_string": char_str,
+            "ground_truth": gt,
+            "synthetic": {
+                "width": rendered.width,
+                "height": rendered.height,
+                "contours": len(rendered.contours),
+                "preview": board.data_url,
+            },
+            "predictions": {},
+        }
         for model in ["comer", "san", "can"]:
             pred = predictions.get(model)
             if pred and pred.get("latex") and pred["latex"] not in ("(failed)", "(empty)", "(no result)", ""):
@@ -322,6 +346,10 @@ def print_summary(results):
 
 
 def main():
+    if sync_playwright is None:
+        print("Playwright not installed. Run: pip install playwright && playwright install chromium")
+        sys.exit(1)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--headful", action="store_true", help="Show browser window")
     parser.add_argument("--category", choices=["simple", "complex"], help="Only test simple or complex equations")

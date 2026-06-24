@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
     <script src="../StrokeDataSaver.js?v=20260622"></script>
-    <script src="../IdentifyLine.js?v=20260622"></script>
+    <script src="../CanvasSegmentation/IdentifyLine.js?v=20260623"></script>
+    <script src="../CanvasSegmentation/IdentifyLineDBNet.js?v=20260624"></script>
     <script src="../HandwritingToLatex/LinesRasterizer.js?v=20260622"></script>
     <script src="../functionality/StrokeSmoother.js?v=20260622"></script>
     <script src="../HandwritingToLatex/LatexPredictor.js?v=20260622"></script>
@@ -148,6 +149,8 @@
         {name: "simple_fraction", chars: "a / b = c", latex: "\\frac{a}{b}=c", category: "simple"},
         {name: "simple_times", chars: "y = a * b / c", latex: "y=a\\cdot\\frac{b}{c}", category: "simple"},
         {name: "simple_exponent", chars: "c = a 2 + b 2", latex: "c=a^{2}+b^{2}", category: "simple"},
+        {name: "complex_fraction_rational_equation", chars: "1 / x 2 - 3 = 1", latex: "\\frac{1}{x^{2}-3}=1", category: "complex"},
+        {name: "complex_radical_linear_equation", chars: "/ x + 1 + 8 = 1 2", latex: "\\sqrt{x+1}+8=12", category: "complex"},
         {name: "complex_quadratic", chars: "x = - b + - / b 2 - 4 a c / 2 a", latex: "x=\\frac{-b\\pm\\sqrt{b^{2}-4ac}}{2a}", category: "complex"},
         {name: "complex_eulers", chars: "e i + 1 = 0", latex: "e^{i\\pi}+1=0", category: "complex"},
         {name: "complex_limit", chars: "l i m n ( 1 + 1 / n ) n = e", latex: "\\lim_{n\\to\\infty}(1+\\frac{1}{n})^{n}=e", category: "complex"},
@@ -196,7 +199,7 @@
         var x = originX;
         for (var i = 0; i < chars.length; i++) {
             var ch = chars[i];
-            if (ch === ' ') { x += charW * 0.5 + gap; continue; }
+            if (ch === ' ') { continue; }
             var chStrokes = CHAR_STROKES[ch] || [];
             for (var s = 0; s < chStrokes.length; s++) {
                 var stroke = chStrokes[s];
@@ -216,7 +219,8 @@
         var cw = fgCanvas.clientWidth;
         var ch = fgCanvas.clientHeight;
         var charW = 60, charH = 80, gap = 8;
-        var totalW = eq.chars.length * charW + (eq.chars.length - 1) * gap;
+        var visibleChars = eq.chars.replace(/\s/g, '').length;
+        var totalW = visibleChars * charW + Math.max(0, visibleChars - 1) * gap;
         var originX = Math.max(40, (cw - totalW) / 2);
         var originY = Math.max(60, (ch - charH) / 2);
         var strokes = renderEquation(eq.chars, originX, originY, charW, charH, gap);
@@ -365,6 +369,21 @@
 
     // Wait for all scripts to load, then init
     document.addEventListener('DOMContentLoaded', function() {
+        if (typeof IdentifyLineDBNet !== 'undefined') {
+            if (typeof IdentifyLineGeometric !== 'undefined' && IdentifyLineGeometric.setActive) {
+                IdentifyLineGeometric.setActive(false);
+            }
+            IdentifyLine = IdentifyLineDBNet;
+            IdentifyLineDBNet.setActive(true);
+            IdentifyLineDBNet.configure({
+                apiUrl: '',
+                idleDelayMs: 1000,
+                horizontalPadding: 50,
+                verticalPadding: 10,
+                requestTimeoutMs: 10000,
+                minVerticalOverlapRatio: 0.25
+            });
+        }
         resize();
         buildButtons();
         document.getElementById('status-bar').textContent = 'Ready. Select an equation or draw manually.';

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "solve_addition_x_plus_3",
+    "prompt": "Solve for x: x + 3 = 7",
+    "solution_latex": "x = 4",
+    "equivalent_solutions": ["4 = x"],
+    "answer_chars": "x = 4"
+  },
+  {
+    "id": "solve_two_step_2x_plus_3",
+    "prompt": "Solve for x: 2x + 3 = 11",
+    "solution_latex": "x = 4",
+    "equivalent_solutions": ["4 = x"],
+    "answer_chars": "x = 4"
+  },
+  {
+    "id": "solve_division_x_over_3",
+    "prompt": "Solve for x: x / 3 = 5",
+    "solution_latex": "x = 15",
+    "equivalent_solutions": ["15 = x"],
+    "answer_chars": "x = 1 5"
+  },
+  {
+    "id": "solve_three_x_minus_5",
+    "prompt": "Solve for x: 3x - 5 = 10",
+    "solution_latex": "x = 5",
+    "equivalent_solutions": ["5 = x"],
+    "answer_chars": "x = 5"
+  },
+  {
+    "id": "solve_fraction_rational",
+    "prompt": "Solve for x: \\frac{1}{x^2 - 3} = 1",
+    "solution_latex": "x = \\pm 2",
+    "equivalent_solutions": ["2 = x", "-2 = x", "x = 2", "x = -2"],
+    "answer_chars": "x = 2 + - 2"
+  },
+  {
+    "id": "solve_radical_linear",
+    "prompt": "Solve for x: \\sqrt{x + 1} + 8 = 12",
+    "solution_latex": "x = 15",
+    "equivalent_solutions": ["15 = x"],
+    "answer_chars": "x = 1 5"
+  }
+]

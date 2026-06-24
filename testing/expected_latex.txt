@@ -15,6 +15,8 @@ simple_plus_minus	x = 2 \pm 3	simple
 simple_times_divide	y = a \cdot \frac{b}{c}	simple
 
 # ---- Complex equations (multi-part, nested structures) ----
+complex_fraction_rational_equation	\frac{1}{x^2 - 3} = 1	complex
+complex_radical_linear_equation	\sqrt{x + 1} + 8 = 12	complex
 complex_quadratic	x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}	complex
 complex_eulers	e^{i\pi} + 1 = 0	complex
 complex_gauss	int_{-\infty}^{\infty} e^{-x^2} \, dx = \sqrt{\pi}	complex

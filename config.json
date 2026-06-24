@@ -1,12 +1,22 @@
 {
   "apiUrl": "",
-  "recognitionModels": ["comer", "san", "can"],
+  "recognitionModels": ["comer"],
+  "recognitionTimeoutMs": 10000,
+  "lineDetection": {
+    "mode": "dbnet",
+    "idleDelayMs": 1000,
+    "horizontalPadding": 50,
+    "verticalPadding": 10,
+    "requestTimeoutMs": 10000,
+    "minVerticalOverlapRatio": 0.25,
+    "strictMinVerticalOverlapRatio": 0.15
+  },
   "realTimeRecognition": {
     "enabled": true,
     "idleDelayMs": 1000,
     "minRunGapMs": 1200,
     "maxConcurrentLines": 1,
-    "models": ["comer", "san", "can"],
+    "models": ["comer"],
     "showPendingRows": true
   }
 }

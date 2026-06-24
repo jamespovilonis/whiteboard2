@@ -1,0 +1,48 @@
+{
+  "bands": [
+    {
+      "xMin": 119,
+      "yMin": 83,
+      "xMax": 612,
+      "yMax": 215
+    },
+    {
+      "xMin": 159,
+      "yMin": 202,
+      "xMax": 460,
+      "yMax": 418
+    }
+  ],
+  "splits": [
+    {
+      "xMin": 132,
+      "yMin": 101,
+      "xMax": 597,
+      "yMax": 161
+    },
+    {
+      "xMin": 183,
+      "yMin": 164,
+      "xMax": 397,
+      "yMax": 206
+    },
+    {
+      "xMin": 175,
+      "yMin": 227,
+      "xMax": 444,
+      "yMax": 279
+    },
+    {
+      "xMin": 201,
+      "yMin": 285,
+      "xMax": 437,
+      "yMax": 347
+    },
+    {
+      "xMin": 231,
+      "yMin": 355,
+      "xMax": 437,
+      "yMax": 403
+    }
+  ]
+}

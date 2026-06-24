@@ -1,0 +1,558 @@
+[
+  {
+    "name": "standard",
+    "expected": 3,
+    "rawDetections": 3,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 3,
+        "rawDetections": 3,
+        "dbnetBands": 3,
+        "baseCandidates": 1,
+        "splitCandidates": 3,
+        "splitStrokeCounts": [
+          8,
+          5,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 105,
+            "xMax": 597,
+            "yMax": 165
+          },
+          {
+            "xMin": 209,
+            "yMin": 273,
+            "xMax": 478,
+            "yMax": 330
+          },
+          {
+            "xMin": 285,
+            "yMin": 448,
+            "xMax": 491,
+            "yMax": 502
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      },
+      {
+        "order": "reverse-lines",
+        "expectedLines": 3,
+        "rawDetections": 3,
+        "dbnetBands": 3,
+        "baseCandidates": 1,
+        "splitCandidates": 3,
+        "splitStrokeCounts": [
+          8,
+          5,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 105,
+            "xMax": 597,
+            "yMax": 165
+          },
+          {
+            "xMin": 209,
+            "yMin": 273,
+            "xMax": 478,
+            "yMax": 330
+          },
+          {
+            "xMin": 285,
+            "yMin": 448,
+            "xMax": 491,
+            "yMax": 502
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      },
+      {
+        "order": "interleaved-lines",
+        "expectedLines": 3,
+        "rawDetections": 3,
+        "dbnetBands": 3,
+        "baseCandidates": 1,
+        "splitCandidates": 3,
+        "splitStrokeCounts": [
+          8,
+          5,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 105,
+            "xMax": 597,
+            "yMax": 165
+          },
+          {
+            "xMin": 209,
+            "yMin": 273,
+            "xMax": 478,
+            "yMax": 330
+          },
+          {
+            "xMin": 285,
+            "yMin": 448,
+            "xMax": 491,
+            "yMax": 502
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "dense",
+    "expected": 3,
+    "rawDetections": 3,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 3,
+        "rawDetections": 3,
+        "dbnetBands": 3,
+        "baseCandidates": 1,
+        "splitCandidates": 3,
+        "splitStrokeCounts": [
+          8,
+          5,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 125,
+            "xMax": 597,
+            "yMax": 185
+          },
+          {
+            "xMin": 175,
+            "yMin": 203,
+            "xMax": 444,
+            "yMax": 260
+          },
+          {
+            "xMin": 217,
+            "yMin": 288,
+            "xMax": 423,
+            "yMax": 342
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      },
+      {
+        "order": "reverse-lines",
+        "expectedLines": 3,
+        "rawDetections": 3,
+        "dbnetBands": 3,
+        "baseCandidates": 1,
+        "splitCandidates": 3,
+        "splitStrokeCounts": [
+          8,
+          5,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 125,
+            "xMax": 597,
+            "yMax": 185
+          },
+          {
+            "xMin": 175,
+            "yMin": 203,
+            "xMax": 444,
+            "yMax": 260
+          },
+          {
+            "xMin": 217,
+            "yMin": 288,
+            "xMax": 423,
+            "yMax": 342
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      },
+      {
+        "order": "interleaved-lines",
+        "expectedLines": 3,
+        "rawDetections": 3,
+        "dbnetBands": 3,
+        "baseCandidates": 1,
+        "splitCandidates": 3,
+        "splitStrokeCounts": [
+          8,
+          5,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 125,
+            "xMax": 597,
+            "yMax": 185
+          },
+          {
+            "xMin": 175,
+            "yMin": 203,
+            "xMax": 444,
+            "yMax": 260
+          },
+          {
+            "xMin": 217,
+            "yMin": 288,
+            "xMax": 423,
+            "yMax": 342
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "dense-steps",
+    "expected": 5,
+    "rawDetections": 13,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 5,
+        "rawDetections": 13,
+        "dbnetBands": 2,
+        "baseCandidates": 1,
+        "splitCandidates": 5,
+        "splitStrokeCounts": [
+          8,
+          4,
+          5,
+          4,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 101,
+            "xMax": 597,
+            "yMax": 161
+          },
+          {
+            "xMin": 183,
+            "yMin": 164,
+            "xMax": 397,
+            "yMax": 206
+          },
+          {
+            "xMin": 175,
+            "yMin": 227,
+            "xMax": 444,
+            "yMax": 279
+          },
+          {
+            "xMin": 201,
+            "yMin": 285,
+            "xMax": 437,
+            "yMax": 347
+          },
+          {
+            "xMin": 231,
+            "yMin": 355,
+            "xMax": 437,
+            "yMax": 403
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ]
+      },
+      {
+        "order": "reverse-lines",
+        "expectedLines": 5,
+        "rawDetections": 13,
+        "dbnetBands": 2,
+        "baseCandidates": 1,
+        "splitCandidates": 5,
+        "splitStrokeCounts": [
+          8,
+          4,
+          5,
+          4,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 101,
+            "xMax": 597,
+            "yMax": 161
+          },
+          {
+            "xMin": 183,
+            "yMin": 164,
+            "xMax": 397,
+            "yMax": 206
+          },
+          {
+            "xMin": 175,
+            "yMin": 227,
+            "xMax": 444,
+            "yMax": 279
+          },
+          {
+            "xMin": 201,
+            "yMin": 285,
+            "xMax": 437,
+            "yMax": 347
+          },
+          {
+            "xMin": 231,
+            "yMin": 355,
+            "xMax": 437,
+            "yMax": 403
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ]
+      },
+      {
+        "order": "interleaved-lines",
+        "expectedLines": 5,
+        "rawDetections": 13,
+        "dbnetBands": 2,
+        "baseCandidates": 1,
+        "splitCandidates": 5,
+        "splitStrokeCounts": [
+          8,
+          4,
+          5,
+          4,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 132,
+            "yMin": 101,
+            "xMax": 597,
+            "yMax": 161
+          },
+          {
+            "xMin": 183,
+            "yMin": 164,
+            "xMax": 397,
+            "yMax": 206
+          },
+          {
+            "xMin": 175,
+            "yMin": 227,
+            "xMax": 444,
+            "yMax": 279
+          },
+          {
+            "xMin": 201,
+            "yMin": 285,
+            "xMax": 437,
+            "yMax": 347
+          },
+          {
+            "xMin": 231,
+            "yMin": 355,
+            "xMax": 437,
+            "yMax": 403
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "fraction",
+    "expected": 1,
+    "rawDetections": 3,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 1,
+        "rawDetections": 3,
+        "dbnetBands": 1,
+        "baseCandidates": 1,
+        "splitCandidates": 1,
+        "splitStrokeCounts": [
+          10
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 126,
+            "yMin": 129,
+            "xMax": 499,
+            "yMax": 281
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ]
+        ]
+      },
+      {
+        "order": "reverse-lines",
+        "expectedLines": 1,
+        "rawDetections": 3,
+        "dbnetBands": 1,
+        "baseCandidates": 1,
+        "splitCandidates": 1,
+        "splitStrokeCounts": [
+          10
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 126,
+            "yMin": 129,
+            "xMax": 499,
+            "yMax": 281
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ]
+        ]
+      },
+      {
+        "order": "interleaved-lines",
+        "expectedLines": 1,
+        "rawDetections": 3,
+        "dbnetBands": 1,
+        "baseCandidates": 1,
+        "splitCandidates": 1,
+        "splitStrokeCounts": [
+          10
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 126,
+            "yMin": 129,
+            "xMax": 499,
+            "yMax": 281
+          }
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ]
+        ]
+      }
+    ]
+  }
+]

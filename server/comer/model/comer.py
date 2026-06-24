@@ -108,6 +108,7 @@ class CoMER(pl.LightningModule):
         early_stopping: bool,
         temperature: float,
         k: int,
+        deadline: float = None,
         **kwargs,
     ) -> List[List[Hypothesis]]:
         """run bi-direction beam search returning top-k hypotheses per image
@@ -128,6 +129,8 @@ class CoMER(pl.LightningModule):
         List[List[Hypothesis]]
         """
         feature, mask = self.encoder(img, img_mask)  # [b, t, d]
+        self.decoder._raise_if_deadline_exceeded(deadline)
         return self.decoder.beam_search_topk(
-            [feature], [mask], beam_size, max_len, alpha, early_stopping, temperature, k
+            [feature], [mask], beam_size, max_len, alpha, early_stopping,
+            temperature, k, deadline=deadline
         )

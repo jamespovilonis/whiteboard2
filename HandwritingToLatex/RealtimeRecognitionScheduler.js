@@ -12,7 +12,7 @@ var RealtimeRecognitionScheduler = (function () {
     idleDelayMs: 1000,
     minRunGapMs: 1200,
     maxConcurrentLines: 1,
-    models: ["can"],
+    models: ["comer"],
     showPendingRows: true
   };
 
@@ -31,7 +31,7 @@ var RealtimeRecognitionScheduler = (function () {
       }
     }
     if (!_config.models || _config.models.length === 0) {
-      _config.models = ["can"];
+      _config.models = ["comer"];
     }
     return getConfig();
   }
@@ -75,7 +75,8 @@ var RealtimeRecognitionScheduler = (function () {
       var line = lines[i];
       var lineIndex = line.lineIndex !== undefined ? line.lineIndex : i;
       var signature = line.signature || line.lineId || ("line_" + lineIndex + "_unknown");
-      if (_lastRecognizedSignatureByLine[lineIndex] !== signature) {
+      var stableKey = line.candidateId || signature;
+      if (_lastRecognizedSignatureByLine[stableKey] !== signature) {
         changed.push(line);
       }
     }
@@ -87,11 +88,28 @@ var RealtimeRecognitionScheduler = (function () {
       var line = lines[i];
       var lineIndex = line.lineIndex !== undefined ? line.lineIndex : i;
       var signature = line.signature || line.lineId || ("line_" + lineIndex + "_unknown");
-      _lastRecognizedSignatureByLine[lineIndex] = signature;
+      var stableKey = line.candidateId || signature;
+      _lastRecognizedSignatureByLine[stableKey] = signature;
     }
   }
 
   function runIfIdle(reason, scheduledVersion) {
+    if (!_config.enabled) return Promise.resolve({ skipped: true, reason: "disabled" });
+    if (scheduledVersion !== _documentVersion) {
+      return Promise.resolve({ skipped: true, reason: "stale_timer" });
+    }
+    if (typeof IdentifyLine !== "undefined" && IdentifyLine.flushPendingGroups) {
+      return Promise.resolve(IdentifyLine.flushPendingGroups()).then(function () {
+        if (scheduledVersion !== _documentVersion) {
+          return { skipped: true, reason: "stale_segmentation" };
+        }
+        return runPrepared(reason, scheduledVersion);
+      });
+    }
+    return runPrepared(reason, scheduledVersion);
+  }
+
+  function runPrepared(reason, scheduledVersion) {
     if (!_config.enabled) return Promise.resolve({ skipped: true, reason: "disabled" });
     if (scheduledVersion !== _documentVersion) {
       return Promise.resolve({ skipped: true, reason: "stale_timer" });
@@ -124,14 +142,9 @@ var RealtimeRecognitionScheduler = (function () {
     _running = true;
     _lastRunStartedAt = Date.now();
 
-    if (_config.showPendingRows && LatexPredictor.renderPendingRow) {
-      for (var i = 0; i < changed.length; i++) {
-        var lineIndex = changed[i].lineIndex !== undefined ? changed[i].lineIndex : i;
-        LatexPredictor.renderPendingRow(lineIndex, "Checking…", changed[i]);
-      }
-    }
-
-    return LatexPredictor.recognizeLines(changed, {
+    // Selection needs the complete candidate graph. LatexPredictor caches
+    // unchanged candidate recognitions, so only new stroke sets hit CoMER.
+    return LatexPredictor.recognizeLines(lines, {
       models: _config.models,
       concurrency: Math.max(1, _config.maxConcurrentLines || 1),
       replaceExisting: true,
@@ -142,7 +155,7 @@ var RealtimeRecognitionScheduler = (function () {
       }
     }).then(function (result) {
       if (runVersion === _documentVersion) {
-        markLinesRecognized(changed);
+        markLinesRecognized(lines);
       }
       return {
         skipped: false,

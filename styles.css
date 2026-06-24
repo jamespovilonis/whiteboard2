@@ -381,6 +381,73 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
     cursor: grabbing;
 }
 
+/* A compact problem prompt that leaves the canvas free for working. */
+.equation-prompt {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: clamp(240px, 30vw, 360px);
+    padding: 9px 12px 11px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(94, 92, 230, 0.22);
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(30, 30, 50, 0.10);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.equation-prompt-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #676774;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.equation-prompt p {
+    width: 100%;
+    margin: 0;
+    padding: 3px 6px 5px;
+    color: #202027;
+    font-size: 15px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.answer-check-result {
+    display: block;
+    width: fit-content;
+    margin: 5px auto 0;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.answer-check-result[hidden] {
+    display: none;
+}
+
+.answer-check-result.checking {
+    background: #eeeeF5;
+    color: #676774;
+}
+
+.answer-check-result.correct {
+    background: #dcf7e7;
+    color: #18794e;
+}
+
+.answer-check-result.incorrect {
+    background: #fde7e9;
+    color: #b4232c;
+}
+
 /* Toast / alert messages */
 .toast {
     position: absolute;
@@ -525,6 +592,35 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.prediction-candidate-heading {
+    margin: 10px 2px 2px;
+    color: #5d6470;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.prediction-row-selected {
+    border-color: rgba(52, 199, 89, 0.45);
+    box-shadow: 0 1px 5px rgba(52, 199, 89, 0.12);
+}
+
+.prediction-row-alternative {
+    border-color: rgba(94, 92, 230, 0.14);
+}
+
+.prediction-candidate-meta {
+    color: #707782;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.prediction-row-selected .prediction-candidate-meta {
+    color: #258a43;
+    font-weight: 600;
+}
+
 /* Line number badge */
 .prediction-badge {
     display: inline-block;
@@ -607,6 +703,18 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
     letter-spacing: 0.4px;
     gap: 5px;
     flex-wrap: wrap;
+}
+
+.prediction-time {
+    margin-left: auto;
+    color: #777;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.prediction-time.timed-out {
+    color: #c0392b;
+    font-weight: 600;
 }
 
 .prediction-col-header span:first-child {

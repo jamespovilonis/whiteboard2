@@ -4,24 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Whiteboard</title>
-    <link rel="stylesheet" href="styles.css?v=20260622">
+    <link rel="stylesheet" href="styles.css?v=20260623">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" defer></script>
     <script src="StrokeDataSaver.js?v=20260622" defer></script>
-    <script src="IdentifyLine.js?v=20260622" defer></script>
-    <script src="HandwritingToLatex/LinesRasterizer.js?v=20260622" defer></script>
+    <script src="CanvasSegmentation/IdentifyLine.js?v=20260623" defer></script>
+    <script src="CanvasSegmentation/IdentifyLineDBNet.js?v=20260624" defer></script>
+    <script src="HandwritingToLatex/LinesRasterizer.js?v=20260623" defer></script>
     <script src="functionality/StrokeSmoother.js?v=20260622" defer></script>
     <script src="functionality/PenSizeColor.js?v=20260622" defer></script>
     <script src="functionality/PenStroke.js?v=20260622" defer></script>
     <script src="functionality/Eraser.js?v=20260622" defer></script>
-    <script src="HandwritingToLatex/LatexPredictor.js?v=20260622" defer></script>
-    <script src="HandwritingToLatex/RealtimeRecognitionScheduler.js?v=20260622" defer></script>
+    <script src="AnswerCheck/PredictionStore.js?v=20260623" defer></script>
+    <script src="AnswerCheck/AnswerCheckController.js?v=20260623" defer></script>
+    <script src="HandwritingToLatex/LatexPredictor.js?v=20260623" defer></script>
+    <script src="HandwritingToLatex/RealtimeRecognitionScheduler.js?v=20260623" defer></script>
 </head>
 <body>
     <div class="main-layout">
         <div class="canvas-container">
             <canvas id="whiteboard-bg"></canvas>
             <canvas id="whiteboard"></canvas>
+            <section class="equation-prompt" data-question-id="simple_x_equals_yz"
+                aria-labelledby="equation-prompt-label">
+                <div id="equation-prompt-label" class="equation-prompt-label">Question</div>
+                <p id="equation-question">Write an equation stating that x is the sum of y and z.</p>
+                <output id="answer-check-result" class="answer-check-result" aria-live="polite" hidden></output>
+            </section>
             <div class="toolbar" role="toolbar" aria-label="Drawing tools">
                 <span class="toolbar-toggle" aria-hidden="true"><img src="icons/pencil.png" alt="" class="tool-icon"></span>
                 <div class="toolbar-content">
@@ -58,14 +67,6 @@
                         <div class="server-status-row">
                             <span class="server-label">CoMER</span>
                             <div id="serverStatus-comer" class="server-status" title="CoMER server: offline"></div>
-                        </div>
-                        <div class="server-status-row">
-                            <span class="server-label">SAN</span>
-                            <div id="serverStatus-san" class="server-status" title="SAN server: offline"></div>
-                        </div>
-                        <div class="server-status-row">
-                            <span class="server-label">CAN</span>
-                            <div id="serverStatus-can" class="server-status" title="CAN server: offline"></div>
                         </div>
                     </div>
                     <div class="toolbar-divider" role="separator"></div>
@@ -110,10 +111,50 @@
 
         function applyRuntimeConfig(cfg) {
             pendingRuntimeConfig = cfg || {};
+            if (pendingRuntimeConfig.lineDetection &&
+                pendingRuntimeConfig.lineDetection.mode === 'dbnet' &&
+                typeof IdentifyLineDBNet !== 'undefined') {
+                if (typeof IdentifyLineGeometric !== 'undefined' && IdentifyLineGeometric.setActive) {
+                    IdentifyLineGeometric.setActive(false);
+                }
+                IdentifyLineDBNet.setActive(true);
+                IdentifyLine = IdentifyLineDBNet;
+                IdentifyLineDBNet.configure(Object.assign({}, pendingRuntimeConfig.lineDetection, {
+                    apiUrl: configuredApiUrl || ''
+                }));
+            } else if (typeof IdentifyLineGeometric !== 'undefined') {
+                if (typeof IdentifyLineDBNet !== 'undefined' && IdentifyLineDBNet.setActive) {
+                    IdentifyLineDBNet.setActive(false);
+                }
+                IdentifyLineGeometric.setActive(true);
+                IdentifyLine = IdentifyLineGeometric;
+            }
             if (typeof LatexPredictor !== 'undefined') {
                 LatexPredictor.setServerUrl(configuredApiUrl || '');
                 if (pendingRuntimeConfig.recognitionModels) {
                     LatexPredictor.setEnabledModels(pendingRuntimeConfig.recognitionModels);
+                }
+                if (pendingRuntimeConfig.recognitionTimeoutMs) {
+                    LatexPredictor.setRecognitionTimeoutMs(pendingRuntimeConfig.recognitionTimeoutMs);
+                }
+            }
+            if (typeof IdentifyLine !== 'undefined' && IdentifyLine.setStrictMinVerticalOverlapRatio &&
+                pendingRuntimeConfig.lineDetection &&
+                pendingRuntimeConfig.lineDetection.strictMinVerticalOverlapRatio !== undefined) {
+                IdentifyLine.setStrictMinVerticalOverlapRatio(
+                    pendingRuntimeConfig.lineDetection.strictMinVerticalOverlapRatio
+                );
+            }
+            if (typeof AnswerCheckController !== 'undefined') {
+                AnswerCheckController.setServerUrl(configuredApiUrl || '');
+                var prompt = document.querySelector('.equation-prompt[data-question-id]');
+                if (prompt) {
+                    if (urlParams.has('questionId')) {
+                        AnswerCheckController.setQuestionId(urlParams.get('questionId'));
+                        AnswerCheckController.loadQuestion();
+                    } else {
+                        AnswerCheckController.loadRandomQuestion();
+                    }
                 }
             }
             if (typeof RealtimeRecognitionScheduler !== 'undefined' && pendingRuntimeConfig.realTimeRecognition) {

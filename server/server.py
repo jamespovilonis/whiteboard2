@@ -1,20 +1,14 @@
-"""
-Unified Handwriting Recognition API Server
-
-Loads CoMER, SAN, and CAN models and exposes a single /recognize endpoint
-with ?model=comer|san|can parameter to select which model to use.
-
-Also exposes /health?model=all|comer|san|can for health checks.
-"""
+"""CoMER handwriting recognition and lightweight answer-checking API."""
 
 import io
 import logging
 import math
+import secrets
 import sys
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -22,9 +16,19 @@ import uvicorn
 import yaml
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from PIL import Image
+from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 from torchvision.transforms import ToTensor
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from AnswerCheck.checker import check_answer
+from AnswerCheck.questions import QUESTIONS, get_question
+from CanvasSegmentation.DBNet_Integration import dbnet_detector
 
 # ── Constants ──────────────────────────────────────────────────────────
 MAX_UPLOAD_SIZE_MB = 10
@@ -133,8 +137,12 @@ def _preprocess_comer(pil_img: Image.Image) -> Tuple[torch.Tensor, torch.Tensor]
     return img_tensor.unsqueeze(0), mask.unsqueeze(0)
 
 
-def _inference_comer(img_tensor: torch.Tensor, mask: torch.Tensor):
-    candidates = _comer_model.approximate_joint_search_topk(img_tensor, mask, k=20)
+def _inference_comer(
+    img_tensor: torch.Tensor, mask: torch.Tensor, deadline: Optional[float] = None
+):
+    candidates = _comer_model.approximate_joint_search_topk(
+        img_tensor, mask, k=20, deadline=deadline
+    )
     cand_list = []
     seen = set()
     for hyp in candidates[0]:
@@ -143,7 +151,7 @@ def _inference_comer(img_tensor: torch.Tensor, mask: torch.Tensor):
             continue
         seen.add(latex)
         cand_list.append({"latex": latex, "score": round(float(hyp.score), 4)})
-        if len(cand_list) >= 10:
+        if len(cand_list) >= 5:
             break
     return cand_list
 
@@ -491,17 +499,21 @@ def _normalize_confidence(raw_candidates):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# Lifespan (load all models)
+# Lifespan (CoMER only for now)
 # ═══════════════════════════════════════════════════════════════════
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Loading all handwriting recognition models...")
+    logger.info("Loading CoMER handwriting recognition model...")
     _load_comer()
-    _load_san()
-    _load_can()
 
-    loaded = [name for name, m in [("comer", _comer_model), ("san", _san_model), ("can", _can_model)] if m is not None]
+    # DBNet is optional at runtime: geometric segmentation remains available
+    # when PaddleOCR or its model weights cannot be loaded.
+    dbnet_detector.load()
+
+    loaded = [name for name, m in [("comer", _comer_model)] if m is not None]
+    if dbnet_detector.loaded:
+        loaded.append("dbnet")
     logger.info("Models ready: %s. Device: %s", ", ".join(loaded) or "(none)", device)
 
     yield
@@ -511,7 +523,7 @@ async def lifespan(app: FastAPI):
 # App instance
 # ═══════════════════════════════════════════════════════════════════
 
-app = FastAPI(title="Unified HWR API (CoMER/SAN/CAN)", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="CoMER HWR API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -523,7 +535,71 @@ app.add_middleware(
 
 # ── Endpoints ───────────────────────────────────────────────────────────
 
-VALID_MODELS = {"comer", "san", "can"}
+VALID_MODELS = {"comer"}
+
+
+class AnswerCandidate(BaseModel):
+    rank: Optional[int] = None
+    latex: str
+    score: Optional[float] = None
+    confidence: Optional[float] = None
+    model: str = "comer"
+
+
+class AnswerLine(BaseModel):
+    line_index: int = Field(alias="lineIndex")
+    line_id: Optional[str] = Field(default=None, alias="lineId")
+    signature: Optional[str] = None
+    candidates: List[AnswerCandidate]
+
+
+class AnswerCheckRequest(BaseModel):
+    question_id: str = Field(alias="questionId")
+    lines: List[AnswerLine]
+
+
+@app.get("/segment-lines/health")
+def segment_lines_health():
+    return {
+        "status": "ok" if dbnet_detector.loaded else "unavailable",
+        "loaded": dbnet_detector.loaded,
+        "model": dbnet_detector.model_name,
+        "error": dbnet_detector.load_error,
+    }
+
+
+@app.post("/segment-lines")
+async def segment_lines(file: UploadFile = File(...)):
+    """Detect text regions in one padded candidate crop using DBNet."""
+    try:
+        contents = await file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="Empty image file.")
+        if len(contents) > MAX_UPLOAD_BYTES:
+            raise HTTPException(413, f"Image too large. Maximum size is {MAX_UPLOAD_SIZE_MB} MB.")
+        image = Image.open(io.BytesIO(contents))
+        image.load()
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not read image: {exc}") from exc
+
+    if not dbnet_detector.loaded and not dbnet_detector.load():
+        raise HTTPException(status_code=503, detail=dbnet_detector.load_error or "DBNet is unavailable")
+
+    start = time.monotonic()
+    try:
+        detections = await run_in_threadpool(dbnet_detector.predict, image)
+    except Exception as exc:
+        logger.exception("DBNet line segmentation failed")
+        raise HTTPException(status_code=500, detail=f"DBNet inference failed: {exc}") from exc
+    return {
+        "detections": detections,
+        "imageWidth": image.width,
+        "imageHeight": image.height,
+        "elapsedSeconds": round(time.monotonic() - start, 3),
+        "model": dbnet_detector.model_name,
+    }
 
 
 @app.get("/health")
@@ -533,8 +609,6 @@ def health(model: str = Query("all")):
             "status": "ok",
             "models": {
                 "comer": _comer_model is not None,
-                "san": _san_model is not None,
-                "can": _can_model is not None,
             }
         }
     if model not in VALID_MODELS:
@@ -542,10 +616,6 @@ def health(model: str = Query("all")):
     status = {"status": "ok", "model": model, "loaded": False}
     if model == "comer":
         status["loaded"] = _comer_model is not None
-    elif model == "san":
-        status["loaded"] = _san_model is not None
-    elif model == "can":
-        status["loaded"] = _can_model is not None
     return status
 
 
@@ -553,12 +623,13 @@ def health(model: str = Query("all")):
 async def recognize(
     file: UploadFile = File(...),
     model: str = Query("comer"),
+    timeout_seconds: float = Query(10.0, ge=0.1, le=30.0),
 ):
     """Recognize handwritten math from an uploaded PNG image.
 
     Args:
         file: PNG image of handwritten math.
-        model: Which model to use — 'comer', 'san', or 'can'.
+        model: Recognition model. Only 'comer' is enabled for now.
 
     Returns unified format:
         {"candidates": [{latex, score, confidence}], "top": {latex, score, confidence}}
@@ -581,13 +652,16 @@ async def recognize(
         raise HTTPException(status_code=400, detail=f"Could not read image: {exc}") from exc
 
     # Dispatch to selected model
-    start = time.time()
+    start = time.monotonic()
+    deadline = start + timeout_seconds
     try:
         if model == "comer":
             if _comer_model is None:
                 raise HTTPException(503, "CoMER model is not loaded.")
             img_tensor, mask = _preprocess_comer(pil_img)
-            raw_candidates = _inference_comer(img_tensor.to(device), mask.to(device))
+            raw_candidates = _inference_comer(
+                img_tensor.to(device), mask.to(device), deadline=deadline
+            )
         elif model == "san":
             if _san_model is None:
                 raise HTTPException(503, "SAN model is not loaded.")
@@ -602,11 +676,24 @@ async def recognize(
             raise HTTPException(400, f"Unknown model: {model}")
     except HTTPException:
         raise
+    except TimeoutError:
+        elapsed = time.monotonic() - start
+        logger.warning("[%s] Recognition timed out after %.2fs", model, elapsed)
+        return JSONResponse(
+            status_code=408,
+            content={
+                "timedOut": True,
+                "elapsedSeconds": round(elapsed, 3),
+                "selectionPenalty": -1000,
+                "candidates": [],
+                "top": None,
+            },
+        )
     except Exception as exc:
         logger.exception("Model inference failed")
         raise HTTPException(status_code=500, detail=f"Inference failed: {exc}") from exc
 
-    elapsed = time.time() - start
+    elapsed = time.monotonic() - start
 
     # Normalize confidence scores
     candidates = _normalize_confidence(raw_candidates)
@@ -615,7 +702,61 @@ async def recognize(
     latex_str = top["latex"] if top else ""
     logger.info("[%s] Recognized in %.2fs: %r", model, elapsed, latex_str)
 
-    return {"candidates": candidates, "top": top}
+    return {
+        "candidates": candidates,
+        "top": top,
+        "elapsedSeconds": round(elapsed, 3),
+        "timedOut": False,
+        "selectionPenalty": 0,
+    }
+
+
+def _public_question(question: dict):
+    return {
+        "id": question["id"],
+        "prompt": question["prompt"],
+        "answerType": question["answer_type"],
+    }
+
+
+@app.get("/answer-check/questions/random")
+def random_answer_check_question(exclude: Optional[str] = Query(default=None)):
+    """Choose a test-derived question, avoiding the previous one when given."""
+    question_ids = [question_id for question_id in QUESTIONS if question_id != exclude]
+    if not question_ids:
+        question_ids = list(QUESTIONS)
+    return _public_question(get_question(secrets.choice(question_ids)))
+
+
+@app.get("/answer-check/questions/{question_id}")
+def answer_check_question(question_id: str):
+    """Return public metadata for a reviewed question fixture."""
+    try:
+        question = get_question(question_id)
+    except KeyError as exc:
+        raise HTTPException(404, f"Unknown question: {question_id}") from exc
+    return _public_question(question)
+
+
+@app.post("/answer-check")
+def answer_check(request: AnswerCheckRequest):
+    """Evaluate the five CoMER candidates stored for the final answer line."""
+    try:
+        lines = [
+            {
+                "lineIndex": line.line_index,
+                "lineId": line.line_id,
+                "signature": line.signature,
+                "candidates": [
+                    candidate.model_dump() if hasattr(candidate, "model_dump") else candidate.dict()
+                    for candidate in line.candidates[:5]
+                ],
+            }
+            for line in request.lines
+        ]
+        return check_answer(request.question_id, lines)
+    except KeyError as exc:
+        raise HTTPException(404, f"Unknown question: {request.question_id}") from exc
 
 
 # ── Catch-all: serve static frontend files for unrecognized paths ──────

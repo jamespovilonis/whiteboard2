@@ -99,6 +99,8 @@ class StrokeDataSaver {
 
     var group = {
       id: this.currentStroke.id,
+      startTime: this.currentStroke.startTime,
+      endTime: Date.now(),
       points: pts,
       rawPoints: this.currentStroke.rawPoints,
       outlinePoints: this.currentStroke.outlinePoints,

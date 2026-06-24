@@ -138,17 +138,21 @@ var LinesRasterizer = (function () {
   }
 
   /**
-   * Rasterize all line groups currently tracked by IdentifyLine.
+   * Rasterize all unique candidates from both line-detection profiles.
    * Uses caching to skip re-rasterizing unchanged lines.
    * @returns {Array} array of { lineIndex, canvasImage, dataUrl, bbox, padding }
    */
   function rasterizeAllLines() {
     clear();
 
-    // Access IdentifyLine's internal strokeGroups (array of { strokes, tightBbox })
+    // Prefer the deduplicated loose+strict candidate set. Fall back to the
+    // legacy loose groups for compatibility with older IdentifyLine builds.
     var groups = null;
-    if (typeof IdentifyLine !== "undefined" && IdentifyLine.getLineGroups) {
-      groups = IdentifyLine.getLineGroups();
+    if (typeof IdentifyLine !== "undefined") {
+      if (IdentifyLine.getLineCandidates) groups = IdentifyLine.getLineCandidates();
+      if ((!groups || groups.length === 0) && IdentifyLine.getLineGroups) {
+        groups = IdentifyLine.getLineGroups();
+      }
     }
 
     if (!groups || groups.length === 0) return _rasterizedLines;
@@ -157,33 +161,49 @@ var LinesRasterizer = (function () {
       var group = groups[i];
       var signature = computeLineSignature(group);
       var cacheKey = "line_" + signature;
+      var result;
 
       if (_cache[cacheKey]) {
-        // Cache hit: use cached rasterization
-        var item = _cache[cacheKey];
-        item.lineIndex = i;
-        item.lineId = signature;
-        item.signature = signature;
-        _rasterizedLines.push(item);
+        result = _cache[cacheKey];
       } else {
-        // Cache miss: re-rasterize
-        var result = rasterizeLine(group.strokes, group.tightBbox);
-        result.lineIndex = i;
-        result.lineId = signature;
-        result.signature = signature;
-
-        // Cache the result using per-line content as version key
+        result = rasterizeLine(group.strokes, group.tightBbox);
         _cache[cacheKey] = {
           dataUrl: result.dataUrl,
           canvasImage: result.canvasImage,
           bbox: result.bbox,
-          padding: result.padding,
-          lineId: signature,
-          signature: signature
+          padding: result.padding
         };
-
-        _rasterizedLines.push(result);
       }
+
+      _rasterizedLines.push({
+        dataUrl: result.dataUrl,
+        canvasImage: result.canvasImage,
+        bbox: result.bbox,
+        tightBbox: group.tightBbox,
+        padding: result.padding,
+        lineIndex: i,
+        lineId: signature,
+        signature: signature,
+        candidateId: group.candidateId || group.id || signature,
+        profiles: (group.profiles || [group.profile || "loose"]).slice(),
+        strokeIds: (group.strokeIds || group.strokes.map(function (stroke) {
+          return String(stroke.id);
+        })).slice(),
+        strokeCount: group.strokes.length,
+        medianStrokeHeight: (function () {
+          var heights = [];
+          for (var h = 0; h < group.strokes.length; h++) {
+            var strokeBbox = group.strokes[h].canvasBbox;
+            if (strokeBbox && strokeBbox.yMax > strokeBbox.yMin) {
+              heights.push(strokeBbox.yMax - strokeBbox.yMin);
+            }
+          }
+          heights.sort(function (a, b) { return a - b; });
+          if (heights.length === 0) return 1;
+          return heights[Math.floor(heights.length / 2)];
+        })(),
+        conflicts: (group.conflicts || []).slice()
+      });
     }
 
     return _rasterizedLines;
