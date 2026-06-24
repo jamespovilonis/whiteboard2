@@ -198,7 +198,15 @@ var LatexPredictor = (function () {
             return;
           }
           var lineIndex = lines[i].lineIndex !== undefined ? lines[i].lineIndex : i;
-          sendLineToServers(lines[i], lineIndex, options).then(function (predictions) {
+          var lineOptions = {};
+          for (var key in options) {
+            if (Object.prototype.hasOwnProperty.call(options, key)) {
+              lineOptions[key] = options[key];
+            }
+          }
+          lineOptions.pendingOrdinal = i + 1;
+          lineOptions.pendingTotal = total;
+          sendLineToServers(lines[i], lineIndex, lineOptions).then(function (predictions) {
             results[i] = predictions;
             step();
           }).catch(function (err) {
@@ -653,6 +661,10 @@ var LatexPredictor = (function () {
       return Promise.resolve(emptyPredictions());
     }
 
+    if (renderOptions.renderPending !== false) {
+      renderPendingRow(lineIndex, "CoMER is reading this crop...", lineData, renderOptions);
+    }
+
     return fetch(dataUrl)
       .then(function (resp) { return resp.blob(); })
       .then(function (blob) {
@@ -692,6 +704,9 @@ var LatexPredictor = (function () {
       })
       .catch(function (err) {
         console.error("Line " + lineIndex + " recognition failed:", err);
+        if (renderOptions.renderPending !== false) {
+          renderPendingRow(lineIndex, "CoMER could not read this crop.", lineData, renderOptions);
+        }
         if (!renderOptions.deferRender) renderRow(lineIndex, emptyPredictions(), renderOptions);
         return emptyPredictions();
       });
@@ -710,25 +725,67 @@ var LatexPredictor = (function () {
   }
 
   function renderPendingRow(lineIndex, stage, lineData) {
+    var options = arguments.length > 3 ? arguments[3] || {} : {};
     if (!_predictionPanel) return;
     _predictionPanel.classList.add("active");
     var emptyState = _predictionPanel.querySelector(".prediction-welcome");
     if (emptyState) emptyState.parentNode.removeChild(emptyState);
+    var genericEmpty = _predictionPanel.querySelector(".prediction-panel-empty:not(.prediction-welcome)");
+    if (genericEmpty && genericEmpty.parentNode) genericEmpty.parentNode.removeChild(genericEmpty);
 
     var row = document.createElement("div");
     row.className = "prediction-row prediction-pending";
     row.dataset.lineIndex = lineIndex;
     if (lineData && lineData.signature) row.dataset.signature = lineData.signature;
+    if (lineData && lineData.profiles && lineData.profiles.length) {
+      row.dataset.groupingProfiles = lineData.profiles.join(",");
+    }
+
+    var topRow = document.createElement("div");
+    topRow.className = "prediction-pending-top";
 
     var badge = document.createElement("span");
     badge.className = "prediction-badge";
-    badge.textContent = "Line " + (lineIndex + 1);
-    row.appendChild(badge);
+    var profileLabel = lineData && lineData.profiles && lineData.profiles.indexOf("dbnet-line") !== -1 ?
+      "DBNet line" :
+      (lineData && lineData.profiles && lineData.profiles.indexOf("dbnet-parent") !== -1 ?
+        "DBNet parent" : "Line");
+    var ordinal = options.pendingOrdinal && options.pendingTotal ?
+      " " + options.pendingOrdinal + "/" + options.pendingTotal :
+      " " + (lineIndex + 1);
+    badge.textContent = profileLabel + ordinal;
+    topRow.appendChild(badge);
+
+    var spinner = document.createElement("span");
+    spinner.className = "prediction-pending-spinner";
+    spinner.setAttribute("aria-hidden", "true");
+    topRow.appendChild(spinner);
+    row.appendChild(topRow);
+
+    if (lineData && lineData.dataUrl) {
+      var previewWrap = document.createElement("div");
+      previewWrap.className = "prediction-pending-preview";
+      var img = document.createElement("img");
+      img.src = lineData.dataUrl;
+      img.alt = "Line crop being sent to CoMER";
+      previewWrap.appendChild(img);
+      row.appendChild(previewWrap);
+    }
 
     var msg = document.createElement("div");
-    msg.className = "prediction-panel-empty realtime-pending-message";
+    msg.className = "realtime-pending-message";
     msg.textContent = stage || "Checking...";
     row.appendChild(msg);
+
+    if (lineData && lineData.tightBbox) {
+      var bbox = lineData.tightBbox;
+      var meta = document.createElement("div");
+      meta.className = "prediction-candidate-meta";
+      meta.textContent = "Ink box " +
+        Math.round(bbox.xMax - bbox.xMin) + " x " +
+        Math.round(bbox.yMax - bbox.yMin) + " px";
+      row.appendChild(meta);
+    }
 
     replaceOrAppendRow(row, lineIndex);
   }

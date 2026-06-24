@@ -610,6 +610,56 @@ button.tool-btn.recognize-btn.spinning .tool-icon {
     border-color: rgba(94, 92, 230, 0.14);
 }
 
+.prediction-pending {
+    border-color: rgba(26, 115, 232, 0.28);
+    background: #fbfdff;
+}
+
+.prediction-pending-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.prediction-pending-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(26, 115, 232, 0.16);
+    border-top-color: #1a73e8;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+.prediction-pending-preview {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 54px;
+    max-height: 110px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid rgba(26, 115, 232, 0.12);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.prediction-pending-preview img {
+    display: block;
+    max-width: 100%;
+    max-height: 94px;
+    object-fit: contain;
+    image-rendering: auto;
+}
+
+.realtime-pending-message {
+    color: #5d6470;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
 .prediction-candidate-meta {
     color: #707782;
     font-size: 11px;

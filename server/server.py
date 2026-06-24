@@ -623,7 +623,7 @@ def health(model: str = Query("all")):
 async def recognize(
     file: UploadFile = File(...),
     model: str = Query("comer"),
-    timeout_seconds: float = Query(10.0, ge=0.1, le=30.0),
+    timeout_seconds: float = Query(20.0, ge=0.1, le=20.0),
 ):
     """Recognize handwritten math from an uploaded PNG image.
 

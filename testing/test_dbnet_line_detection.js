@@ -139,22 +139,27 @@ assert.strictEqual(mergedAlternatives[1].candidateId, firstId, "unchanged origin
 lifecycleStrokes.push(stroke("equation_one_edit", 30, 4, 45, 14));
 lifecycleStrokes[2].startTime = 5000;
 lifecycleStrokes[2].endTime = 5100;
-const alteredBase = lifecycle.buildBaseCandidates()[0];
+const alteredBases = lifecycle.buildBaseCandidates();
+const alteredBase = alteredBases.find((item) => item.strokeIds.includes("equation_one_edit"));
+const unchangedBase = alteredBases.find((item) => item.strokeIds.includes("equation_two"));
+assert.ok(alteredBase, "child anchor catches edits to the changed line");
+assert.ok(unchangedBase, "sibling line remains a separate child anchor");
+assert.strictEqual(
+  JSON.stringify(unchangedBase.strokeIds),
+  JSON.stringify(["equation_two"]),
+  "new writing near one child anchor does not pull in its sibling"
+);
 assert.notStrictEqual(
   lifecycle.candidateCacheKey(alteredBase),
   lifecycle.candidateCacheKey(mergedBase),
-  "altering a merged box forces DBNet to run again"
+  "altering one child anchor forces DBNet to run on that local row"
 );
-const alteredAlternatives = lifecycle.candidateAlternatives(alteredBase, [
-  { bbox: { xMin: 0, yMin: 0, xMax: 120, yMax: 18 } },
-  { bbox: { xMin: 5, yMin: 27, xMax: 125, yMax: 45 } }
-]);
 assert.ok(
-  alteredAlternatives[1].strokeIds.includes("equation_one_edit"),
+  alteredBase.strokeIds.includes("equation_one_edit"),
   "altered line receives a new stroke signature for CoMER"
 );
 assert.strictEqual(
-  alteredAlternatives[2].candidateId,
+  unchangedBase.candidateId,
   mergedAlternatives[2].candidateId,
   "unaltered neighboring line keeps its CoMER cache identity"
 );
@@ -188,6 +193,121 @@ const eliminationAlternatives = elimination.candidateAlternatives(
 );
 assert.strictEqual(eliminationAlternatives.length, 6, "five rows plus one unsplit safety candidate");
 assert.ok(eliminationAlternatives.slice(1).every((line) => line.profiles[0] === "dbnet-line"));
+
+const exponentStrokes = [
+  stroke("exp_x1", 100, 110, 132, 150),
+  stroke("exp_3", 132, 78, 150, 100),
+  stroke("exp_plus", 170, 122, 204, 140),
+  stroke("exp_x2", 230, 110, 262, 150),
+  stroke("exp_2", 262, 78, 280, 100)
+];
+const exponents = loadIdentify(exponentStrokes, exponentStrokes.map((item, index) => [item.id, index * 10]));
+exponents.configure({ idleDelayMs: 1000, horizontalPadding: 50, verticalPadding: 10, minVerticalOverlapRatio: 0.25 });
+const exponentCandidate = exponents.getLineGroups()[0];
+const exponentDbnetBands = [
+  { bbox: { xMin: 130, yMin: 74, xMax: 282, yMax: 104 } },
+  { bbox: { xMin: 96, yMin: 108, xMax: 206, yMax: 152 } },
+  { bbox: { xMin: 228, yMin: 108, xMax: 264, yMax: 152 } }
+];
+assert.strictEqual(
+  exponents.splitCandidate(exponentCandidate, exponentDbnetBands).length,
+  1,
+  "multiple superscripts attach to the expression instead of forming a separate line"
+);
+
+const exponentAndLineStrokes = exponentStrokes
+  .map((item) => stroke(item.id, item.canvasBbox.xMin, item.canvasBbox.yMin, item.canvasBbox.xMax, item.canvasBbox.yMax))
+  .concat([
+    stroke("below_2", 105, 190, 135, 232),
+    stroke("below_x", 150, 190, 184, 232),
+    stroke("below_eq_top", 204, 202, 244, 210),
+    stroke("below_eq_bottom", 204, 218, 244, 226),
+    stroke("below_8", 270, 190, 304, 232)
+  ]);
+const exponentAndLine = loadIdentify(
+  exponentAndLineStrokes,
+  exponentAndLineStrokes.map((item, index) => [item.id, index * 10])
+);
+exponentAndLine.configure({ idleDelayMs: 1000, horizontalPadding: 50, verticalPadding: 10, minVerticalOverlapRatio: 0.25 });
+const exponentAndLineCandidate = exponentAndLine.getLineGroups()[0];
+const exponentAndLineSplit = exponentAndLine.splitCandidate(exponentAndLineCandidate, [
+  { bbox: { xMin: 130, yMin: 74, xMax: 282, yMax: 104 } },
+  { bbox: { xMin: 96, yMin: 108, xMax: 282, yMax: 152 } },
+  { bbox: { xMin: 104, yMin: 188, xMax: 306, yMax: 234 } }
+]);
+assert.strictEqual(exponentAndLineSplit.length, 2, "scripts merge into their expression while the next algebra row remains split");
+assert.ok(exponentAndLineSplit[0].strokeIds.includes("exp_3"));
+assert.ok(exponentAndLineSplit[0].strokeIds.includes("exp_2"));
+assert.ok(exponentAndLineSplit[1].strokeIds.includes("below_x"));
+
+const operatorLimitStrokes = [
+  stroke("sum_upper_n", 110, 74, 132, 96),
+  stroke("sum_upper_5", 138, 72, 158, 98),
+  stroke("sum_symbol", 98, 102, 164, 176),
+  stroke("sum_lower_i", 112, 184, 124, 210),
+  stroke("sum_lower_eq", 128, 192, 150, 204),
+  stroke("sum_lower_1", 156, 184, 172, 212),
+  stroke("sum_x", 188, 124, 226, 166),
+  stroke("sum_plus", 248, 134, 282, 154),
+  stroke("sum_2", 306, 122, 338, 168)
+];
+const operatorLimits = loadIdentify(operatorLimitStrokes, operatorLimitStrokes.map((item, index) => [item.id, index * 10]));
+operatorLimits.configure({ idleDelayMs: 1000, horizontalPadding: 50, verticalPadding: 10, minVerticalOverlapRatio: 0.25 });
+const operatorLimitCandidate = operatorLimits.getLineGroups()[0];
+const operatorLimitSplit = operatorLimits.splitCandidate(operatorLimitCandidate, [
+  { bbox: { xMin: 108, yMin: 70, xMax: 160, yMax: 100 } },
+  { bbox: { xMin: 96, yMin: 100, xMax: 340, yMax: 178 } },
+  { bbox: { xMin: 110, yMin: 182, xMax: 174, yMax: 214 } }
+]);
+assert.strictEqual(
+  operatorLimitSplit.length,
+  1,
+  "summation/integral-style limits stay with the expression instead of becoming lines"
+);
+
+const underlinedOperationStrokes = [
+  stroke("top_2", 100, 100, 132, 142),
+  stroke("top_x", 146, 100, 180, 142),
+  stroke("top_minus", 198, 120, 232, 126),
+  stroke("top_1", 246, 98, 270, 144),
+  stroke("top_eq_top", 292, 112, 334, 120),
+  stroke("top_eq_bottom", 292, 128, 334, 136),
+  stroke("top_19a", 356, 98, 380, 144),
+  stroke("top_19b", 388, 100, 420, 144),
+  stroke("op_plus_left", 202, 158, 230, 182),
+  stroke("op_1_left", 242, 152, 262, 188),
+  stroke("op_plus_right", 332, 158, 360, 182),
+  stroke("op_1_right", 372, 152, 392, 188),
+  stroke("op_underline_left", 198, 196, 266, 202),
+  stroke("op_underline_right", 328, 196, 396, 202),
+  stroke("bottom_2", 110, 230, 142, 272),
+  stroke("bottom_x", 156, 230, 190, 272),
+  stroke("bottom_eq_top", 214, 242, 256, 250),
+  stroke("bottom_eq_bottom", 214, 258, 256, 266),
+  stroke("bottom_20a", 280, 230, 312, 272),
+  stroke("bottom_20b", 320, 230, 352, 272)
+];
+const underlinedOperation = loadIdentify(
+  underlinedOperationStrokes,
+  underlinedOperationStrokes.map((item, index) => [item.id, index * 10])
+);
+underlinedOperation.configure({ idleDelayMs: 1000, horizontalPadding: 50, verticalPadding: 10, minVerticalOverlapRatio: 0.25 });
+const underlinedOperationCandidate = underlinedOperation.getLineGroups()[0];
+const underlinedOperationSplit = underlinedOperation.splitCandidate(underlinedOperationCandidate, [
+  { bbox: { xMin: 98, yMin: 96, xMax: 422, yMax: 146 } },
+  { bbox: { xMin: 198, yMin: 150, xMax: 396, yMax: 190 } },
+  { bbox: { xMin: 196, yMin: 194, xMax: 398, yMax: 204 } },
+  { bbox: { xMin: 108, yMin: 228, xMax: 354, yMax: 274 } }
+]);
+assert.strictEqual(
+  underlinedOperationSplit.length,
+  3,
+  "underlined in-between algebra is split as work rows, not protected as a fraction"
+);
+assert.ok(underlinedOperationSplit[1].strokeIds.includes("op_underline_left"));
+assert.ok(underlinedOperationSplit[1].strokeIds.includes("op_underline_right"));
+assert.ok(!underlinedOperationSplit[0].strokeIds.includes("op_plus_left"));
+assert.ok(!underlinedOperationSplit[2].strokeIds.includes("op_plus_right"));
 
 const denseStepStrokes = [
   stroke("r0_2", 132, 112, 184, 156),
@@ -239,6 +359,41 @@ assert.strictEqual(
   JSON.stringify([8, 4, 5, 4, 4]),
   "dense split preserves the intended row memberships"
 );
+const denseAlternatives = denseSteps.candidateAlternatives(denseStepCandidate, denseUnderSegmentedDbnet);
+assert.strictEqual(denseAlternatives.length, 6, "parent fallback is retained beside dense child rows");
+assert.strictEqual(denseSteps.getSegmentationAnchors().length, 5, "clean DBNet splits persist child anchors");
+
+denseStepStrokes.push(stroke("r2_edit", 458, 230, 486, 240));
+denseStepStrokes[denseStepStrokes.length - 1].startTime = 5000;
+denseStepStrokes[denseStepStrokes.length - 1].endTime = 5020;
+const rowEditCandidates = denseSteps.buildBaseCandidates();
+assert.strictEqual(rowEditCandidates.length, 5, "editing one dense row keeps sibling anchors separate");
+const rowTwoEdit = rowEditCandidates.find((item) => item.strokeIds.includes("r2_edit"));
+assert.ok(rowTwoEdit, "new writing near row 2 merges into row 2 anchor");
+assert.strictEqual(rowTwoEdit.strokeIds.length, 6, "row 2 candidate contains only its original row plus the edit");
+assert.ok(rowEditCandidates.some((item) => item.strokeIds.length === 8 && item.strokeIds.includes("r0_2")));
+assert.ok(rowEditCandidates.some((item) => item.strokeIds.length === 4 && item.strokeIds.includes("r1_3_left")));
+
+const denseBridgeStrokes = denseStepStrokes
+  .filter((item) => item.id !== "r2_edit")
+  .map((item) => stroke(item.id, item.canvasBbox.xMin, item.canvasBbox.yMin, item.canvasBbox.xMax, item.canvasBbox.yMax));
+const denseBridge = loadIdentify(
+  denseBridgeStrokes,
+  denseBridgeStrokes.map((item, index) => [item.id, index * 10])
+);
+denseBridge.configure({ idleDelayMs: 1000, horizontalPadding: 50, verticalPadding: 10, minVerticalOverlapRatio: 0.25 });
+const denseBridgeCandidate = denseBridge.getLineGroups()[0];
+denseBridge.candidateAlternatives(denseBridgeCandidate, denseUnderSegmentedDbnet);
+denseBridgeStrokes.push(stroke("bridge_r1_r2", 280, 209, 360, 224));
+denseBridgeStrokes[denseBridgeStrokes.length - 1].startTime = 5000;
+denseBridgeStrokes[denseBridgeStrokes.length - 1].endTime = 5020;
+const bridgedCandidates = denseBridge.buildBaseCandidates();
+const bridgedRows = bridgedCandidates.find((item) => item.strokeIds.includes("bridge_r1_r2"));
+assert.ok(bridgedRows, "bridge stroke produces a local compound candidate");
+assert.strictEqual(bridgedRows.strokeIds.length, 10, "bridge merges only the two nearby child rows plus new ink");
+assert.ok(bridgedRows.strokeIds.includes("r1_3_left"));
+assert.ok(bridgedRows.strokeIds.includes("r2_2"));
+assert.strictEqual(bridgedCandidates.length, 4, "only the bridged rows are re-compounded for DBNet");
 
 const interleavedDenseOrder = [
   "r0_2", "r2_2", "r4_x", "r1_minus_left", "r3_div_left",
@@ -264,6 +419,44 @@ assert.strictEqual(
   interleavedSplit.length,
   5,
   "dense algebra splits into rows even when strokes are drawn in interleaved temporal order"
+);
+interleavedDense.candidateAlternatives(interleavedCandidate, denseUnderSegmentedDbnet);
+interleavedDenseStrokes.push(stroke("interleaved_r2_edit", 458, 230, 486, 240));
+interleavedDenseStrokes[interleavedDenseStrokes.length - 1].startTime = 6000;
+interleavedDenseStrokes[interleavedDenseStrokes.length - 1].endTime = 6020;
+const interleavedEditCandidates = interleavedDense.buildBaseCandidates();
+assert.strictEqual(interleavedEditCandidates.length, 5, "interleaved stroke order still uses child anchors");
+assert.strictEqual(
+  interleavedEditCandidates.find((item) => item.strokeIds.includes("interleaved_r2_edit")).strokeIds.length,
+  6,
+  "interleaved row edit merges into the intended child anchor"
+);
+
+const reverseDenseStrokes = denseBridgeStrokes
+  .filter((item) => item.id !== "bridge_r1_r2")
+  .map((item) => stroke(item.id, item.canvasBbox.xMin, item.canvasBbox.yMin, item.canvasBbox.xMax, item.canvasBbox.yMax))
+  .reverse();
+for (let i = 0; i < reverseDenseStrokes.length; i++) {
+  reverseDenseStrokes[i].startTime = i * 10;
+  reverseDenseStrokes[i].endTime = i * 10 + 5;
+}
+const reverseDense = loadIdentify(
+  reverseDenseStrokes,
+  reverseDenseStrokes.map((item, index) => [item.id, index * 10])
+);
+reverseDense.configure({ idleDelayMs: 1000, horizontalPadding: 50, verticalPadding: 10, minVerticalOverlapRatio: 0.25 });
+const reverseCandidate = reverseDense.buildBaseCandidates()[0];
+assert.strictEqual(reverseDense.splitCandidate(reverseCandidate, denseUnderSegmentedDbnet).length, 5);
+reverseDense.candidateAlternatives(reverseCandidate, denseUnderSegmentedDbnet);
+reverseDenseStrokes.push(stroke("reverse_r2_edit", 458, 230, 486, 240));
+reverseDenseStrokes[reverseDenseStrokes.length - 1].startTime = 6000;
+reverseDenseStrokes[reverseDenseStrokes.length - 1].endTime = 6020;
+const reverseEditCandidates = reverseDense.buildBaseCandidates();
+assert.strictEqual(reverseEditCandidates.length, 5, "reverse temporal order still uses child anchors");
+assert.strictEqual(
+  reverseEditCandidates.find((item) => item.strokeIds.includes("reverse_r2_edit")).strokeIds.length,
+  6,
+  "reverse-order row edit merges into the intended child anchor"
 );
 
 const fractionWithRhsStrokes = [
@@ -294,5 +487,8 @@ assert.strictEqual(
   1,
   "stacked fraction with right-hand side remains one math line"
 );
+fractionWithRhs.candidateAlternatives(fractionWithRhsCandidate, fractionWithRhsDetections);
+assert.strictEqual(fractionWithRhs.getSegmentationAnchors().length, 1, "fraction stores one whole-candidate anchor");
+assert.strictEqual(fractionWithRhs.getSegmentationAnchors()[0].strokeIds.length, 10);
 
 console.log("DBNet line detection tests passed.");

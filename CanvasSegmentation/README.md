@@ -70,6 +70,20 @@ than DBNet, the vector rows refine the DBNet result. This is particularly
 important for aligned elimination work such as `+5 +5`, `/3 /3`, and a final
 answer written directly beneath the preceding equation.
 
+Before a refined set of bands becomes separate math lines, the splitter folds
+local 2-D structure back into its parent expression. A vertically offset band is
+treated as an attachment, not a line, when it is compact or sparse, close to the
+neighboring expression row, and horizontally supported by nearby ink. This
+covers repeated superscripts such as `x^3 + x^2`, subscripts, and
+summation/integral-style limits. Thin horizontal decoration rows directly under
+an operation row are also attached to that operation row, so underlined
+intermediate work like `+1  +1` remains one work row instead of becoming a
+separate line.
+
+The refinement deliberately remains geometric rather than symbol-name based.
+Full-width or baseline-sized rows still split as algebra work even when they
+are close together, while small local rows stay with the expression they modify.
+
 For a genuine multi-line candidate, the application retains both:
 
 - the complete unsplit base candidate; and
@@ -98,6 +112,12 @@ ink and DBNet bands both above and below it. This is treated as a fraction
 bridge, and the complete candidate is preserved rather than separating the
 numerator and denominator.
 
+The fraction bridge check is conservative around in-between algebra. A bar must
+be a dominant horizontal structure for the candidate, and the nearest ink above
+and below it must be locally balanced. Local underlines beneath operation rows
+therefore attach to that operation row instead of causing the whole surrounding
+stack to be protected as a fraction.
+
 ### 7. Send changed candidates to CoMER
 
 The scheduler waits for `flushPendingGroups()` before rasterizing candidates.
@@ -108,17 +128,45 @@ and model list.
 Therefore:
 
 1. A newly written line is sent through DBNet and then CoMER.
-2. Writing that overlaps its catchment zone produces a new merged base key, so
-   DBNet rereads the complete merged crop.
-3. DBNet's resulting new or altered lines have new signatures and are sent to
+2. When DBNet cleanly splits a compound base candidate, the child DBNet lines
+   are stored as segmentation-memory anchors. The unsplit `dbnet-parent` crop
+   remains available as a recognition fallback, but its large box is not used
+   to catch future writing while child anchors are valid.
+3. New writing first merges against those child anchors. If it touches one
+   child, only that local row receives a new base key; unchanged siblings keep
+   their signatures. If it bridges multiple child anchors, only those nearby
+   anchors are merged and sent back through DBNet as a local compound.
+4. DBNet's resulting new or altered lines have new signatures and are sent to
    CoMER.
-4. A line whose strokes and box are unchanged reuses its existing CoMER result.
+5. A line whose strokes and box are unchanged reuses its existing CoMER result.
 
 For example, after `\frac{x-1}{x+1}=6` is recognized, adding
-`x-1=6(x+1)` underneath may merge both temporal batches into one base box.
-DBNet receives that complete box again. The fraction remains structurally
-protected, the lower equation becomes another line candidate, and CoMER runs
-for the newly created or altered signatures.
+`x-1=6(x+1)` underneath may initially merge both temporal batches into one base
+box. DBNet receives that complete box, the fraction remains structurally
+protected, and the lower equation becomes another line candidate. Once those
+children are anchored, future edits near the lower equation use that smaller
+child catchment instead of the original parent box.
+
+## Current findings
+
+- Multiple superscripts in one expression can appear to DBNet as an upper text
+  row. The structure-aware band merge keeps those sparse, locally supported
+  bands with the baseline expression.
+- Summation, integral, and similar operator limits follow the same rule:
+  compact upper/lower bands near the operator attach to the expression rather
+  than becoming independent work rows.
+- Underlined intermediate operations are treated as real algebra work rows. The
+  underline strokes attach to the operation row, and the fraction bridge
+  heuristic rejects them when they are unbalanced local decoration rather than a
+  numerator/denominator separator.
+- Dense multi-line algebra still relies on full-width/baseline-sized row
+  evidence, so the script and underline protections do not suppress ordinary
+  `line -> operation -> next line` splitting.
+
+The remaining hard cases are inherently ambiguous geometry: a very wide,
+multi-stroke superscript row may look like a real algebra row, and a very dense
+local underline stack may look fraction-like. In those cases the splitter keeps
+the parent fallback candidate so CoMER/global cover selection can recover.
 
 ### 8. Failure behavior
 
