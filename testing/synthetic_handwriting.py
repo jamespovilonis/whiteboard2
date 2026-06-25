@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import os
+import re
 import tempfile
 import warnings
 from dataclasses import dataclass
@@ -118,11 +119,20 @@ def normalize_latex(latex: str) -> str:
     out = latex.strip()
     for old, new in replacements.items():
         out = out.replace(old, new)
-    return " ".join(out.split())
+    out = " ".join(out.split())
+    out = out.replace("′", "'")
+    out = re.sub(r"([A-Za-z0-9\)])\s*'\s*", r"\1^{\\prime}", out)
+    # The fixtures use token-spaced LaTeX because CoMER emits token-spaced
+    # labels. Matplotlib mathtext does not interpret spaces around ^, _, or
+    # braced arguments like TeX does, so compact those structural tokens before
+    # rendering. Keep ordinary operator spacing intact for legibility.
+    out = re.sub(r"\s*([_^{}])\s*", r"\1", out)
+    out = re.sub(r"(\\[A-Za-z]+)\s+(?=[_^{}])", r"\1", out)
+    return out
 
 
 def is_plain_math_text(latex: str) -> bool:
-    return not any(token in latex for token in ("\\", "{", "}", "^", "_"))
+    return not any(token in latex for token in ("\\", "{", "}", "^", "_", "'", "′"))
 
 
 def handwriting_font(size: int) -> ImageFont.FreeTypeFont:

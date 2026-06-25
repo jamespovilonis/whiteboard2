@@ -29,6 +29,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from AnswerCheck.checker import check_answer
 from AnswerCheck.questions import QUESTIONS, get_question
 from CanvasSegmentation.DBNet_Integration import dbnet_detector
+from server.latex_postprocess import repair_latex
 
 # ── Constants ──────────────────────────────────────────────────────────
 MAX_UPLOAD_SIZE_MB = 10
@@ -50,6 +51,8 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+COMER_DIR = Path(__file__).resolve().parent
 
 # ── Model globals ─────────────────────────────────────────────────────
 models = {}  # {"comer": LitCoMER, "san": Backbone, "can": Inference}
@@ -80,6 +83,12 @@ def _load_comer():
     """Load the CoMER model."""
     global _comer_model, _comer_scale_transform, _comer_vocab
 
+    comer_path = str(COMER_DIR)
+    inserted_comer_path = False
+    if comer_path not in sys.path:
+        sys.path.insert(0, comer_path)
+        inserted_comer_path = True
+
     # Monkey-patch torch.load: PyTorch 2.6 defaults weights_only=True,
     # which blocks Lightning's internal checkpoint globals. Force
     # weights_only=False for the duration of model loading.
@@ -109,6 +118,11 @@ def _load_comer():
             return
     finally:
         torch.load = _original_torch_load
+        if inserted_comer_path:
+            try:
+                sys.path.remove(comer_path)
+            except ValueError:
+                pass
 
     _comer_scale_transform = ScaleToLimitRange(w_lo=16, w_hi=1024, h_lo=16, h_hi=256)
     _comer_vocab = comer_vocab
@@ -498,6 +512,25 @@ def _normalize_confidence(raw_candidates):
     return raw_candidates
 
 
+def _postprocess_latex_candidates(raw_candidates):
+    processed = []
+    seen = set()
+    for candidate in raw_candidates or []:
+        updated = dict(candidate)
+        raw_latex = str(updated.get("latex") or "")
+        repaired = repair_latex(raw_latex)
+        if repaired != raw_latex:
+            updated["rawLatex"] = raw_latex
+            updated["latex"] = repaired
+            updated["postprocessed"] = True
+        key = updated.get("latex") or ""
+        if key in seen:
+            continue
+        seen.add(key)
+        processed.append(updated)
+    return processed
+
+
 # ═══════════════════════════════════════════════════════════════════
 # Lifespan (CoMER only for now)
 # ═══════════════════════════════════════════════════════════════════
@@ -695,8 +728,8 @@ async def recognize(
 
     elapsed = time.monotonic() - start
 
-    # Normalize confidence scores
-    candidates = _normalize_confidence(raw_candidates)
+    # Normalize common token confusions, then confidence scores.
+    candidates = _normalize_confidence(_postprocess_latex_candidates(raw_candidates))
     top = candidates[0] if candidates else None
 
     latex_str = top["latex"] if top else ""

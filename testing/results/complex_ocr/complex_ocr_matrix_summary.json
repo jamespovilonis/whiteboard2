@@ -1,0 +1,2592 @@
+[
+  {
+    "name": "rational_solve",
+    "family": "rational",
+    "spacing": "dense",
+    "expectedLineCount": 9,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/rational-solve_dense.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/rational-solve_dense.json",
+    "rawDetections": 11,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 9,
+        "rawDetections": 11,
+        "dbnetBands": 9,
+        "baseCandidates": 1,
+        "splitCandidates": 9,
+        "splitStrokeCounts": [
+          10,
+          11,
+          9,
+          4,
+          8,
+          4,
+          6,
+          4,
+          6
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 118,
+            "yMin": 67,
+            "xMax": 312,
+            "yMax": 144
+          },
+          {
+            "xMin": 165,
+            "yMin": 178,
+            "xMax": 797,
+            "yMax": 249
+          },
+          {
+            "xMin": 150,
+            "yMin": 280,
+            "xMax": 695,
+            "yMax": 344
+          },
+          {
+            "xMin": 216,
+            "yMin": 387,
+            "xMax": 414,
+            "yMax": 432
+          },
+          {
+            "xMin": 166,
+            "yMin": 495,
+            "xMax": 645,
+            "yMax": 551
+          },
+          {
+            "xMin": 226,
+            "yMin": 599,
+            "xMax": 453,
+            "yMax": 647
+          },
+          {
+            "xMin": 159,
+            "yMin": 705,
+            "xMax": 481,
+            "yMax": 757
+          },
+          {
+            "xMin": 235,
+            "yMin": 811,
+            "xMax": 472,
+            "yMax": 866
+          },
+          {
+            "xMin": 185,
+            "yMin": 915,
+            "xMax": 377,
+            "yMax": 992
+          }
+        ],
+        "splitSyntheticLatex": [
+          "\\frac { x - 1 } { x + 1 } = 5",
+          "x - 1 = 5 ( x + 1 )",
+          "x - 1 = 5 x + 5",
+          "- x       - x",
+          "- 1 = 4 x + 5",
+          "- 5       - 5",
+          "- 6 = 4 x",
+          "/ 4       / 4",
+          "x = - \\frac { 3 } { 2 }"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ],
+          [
+            5
+          ],
+          [
+            6
+          ],
+          [
+            7
+          ],
+          [
+            8
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "\\frac { x - 1 } { x + 1 } = 5",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_1.png",
+            "predictedLatex": "\\frac { x - 1 } { x + 1 } = 5",
+            "elapsedSeconds": 1.698,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = 5",
+                "score": -0.0002,
+                "confidence": 0.4737690690339872
+              },
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = b",
+                "score": -1.0949,
+                "confidence": 0.15854207362744613
+              },
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = 0",
+                "score": -1.2641,
+                "confidence": 0.13386341737873986
+              },
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = E",
+                "score": -1.3556,
+                "confidence": 0.12215857634774886
+              },
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = 6",
+                "score": -1.4454,
+                "confidence": 0.11166686361207795
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "x - 1 = 5 ( x + 1 )",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_2.png",
+            "predictedLatex": "x - 1 = 5 ( x + 1 )",
+            "elapsedSeconds": 4.509,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "x - 1 = 5 ( x + 1 )",
+                "score": -0.0309,
+                "confidence": 0.4095091862543142
+              },
+              {
+                "latex": "X - 1 = 5 ( X + 1 )",
+                "score": -0.6174,
+                "confidence": 0.227798014705203
+              },
+              {
+                "latex": "x - 1 = 5 ( X + 1 )",
+                "score": -0.9359,
+                "confidence": 0.16566361817432354
+              },
+              {
+                "latex": "X - 1 = 5 ( x + 1 )",
+                "score": -1.3702,
+                "confidence": 0.1073032926862529
+              },
+              {
+                "latex": "x - 1 = 5 ( x + 1",
+                "score": -1.5491,
+                "confidence": 0.08972588817990634
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "x - 1 = 5 x + 5",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_3.png",
+            "predictedLatex": "x - 1 = 5 x + 5",
+            "elapsedSeconds": 1.561,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "x - 1 = 5 x + 5",
+                "score": -0.0615,
+                "confidence": 0.38626169020006507
+              },
+              {
+                "latex": "x - 1 = 5 X + 5",
+                "score": -0.3692,
+                "confidence": 0.2839548065533786
+              },
+              {
+                "latex": "x - 1 = 5 \\times + 5",
+                "score": -1.0481,
+                "confidence": 0.14401465909189629
+              },
+              {
+                "latex": "X - 1 = 5 X + 5",
+                "score": -1.1963,
+                "confidence": 0.12417788494790986
+              },
+              {
+                "latex": "x - 1 = 5 k + 5",
+                "score": -1.8975,
+                "confidence": 0.06159095920675027
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "- x       - x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_4.png",
+            "predictedLatex": "- x - x",
+            "elapsedSeconds": 0.471,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "- x - x",
+                "score": -0.0209,
+                "confidence": 0.7412235655409337
+              },
+              {
+                "latex": "- x = x",
+                "score": -1.242,
+                "confidence": 0.2185909746145431
+              },
+              {
+                "latex": "- X - x",
+                "score": -3.7589,
+                "confidence": 0.017642350458941292
+              },
+              {
+                "latex": "- x - X",
+                "score": -3.7981,
+                "confidence": 0.01696414989561078
+              },
+              {
+                "latex": "- x = X",
+                "score": -4.9102,
+                "confidence": 0.005578959489971006
+              }
+            ]
+          },
+          {
+            "lineIndex": 4,
+            "sourceLineIndex": 4,
+            "expectedLatex": "- 1 = 4 x + 5",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_5.png",
+            "predictedLatex": "- 1 = 4 x + 5",
+            "elapsedSeconds": 0.553,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "- 1 = 4 x + 5",
+                "score": -0.1442,
+                "confidence": 0.3839421137514467
+              },
+              {
+                "latex": "- 1 = 4 X + 5",
+                "score": -0.2181,
+                "confidence": 0.35659183051471194
+              },
+              {
+                "latex": "- 1 = 4 \\times + 5",
+                "score": -1.0356,
+                "confidence": 0.15744745692569206
+              },
+              {
+                "latex": "- 1 = 4 k + 5",
+                "score": -2.0478,
+                "confidence": 0.05721933099703135
+              },
+              {
+                "latex": "- 1 = q X + 5",
+                "score": -2.2925,
+                "confidence": 0.044799267811117906
+              }
+            ]
+          },
+          {
+            "lineIndex": 5,
+            "sourceLineIndex": 5,
+            "expectedLatex": "- 5       - 5",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_6.png",
+            "predictedLatex": "- 5 - 5",
+            "elapsedSeconds": 0.583,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "- 5 - 5",
+                "score": -0.1382,
+                "confidence": 0.5510547515026883
+              },
+              {
+                "latex": "- 5 = 5",
+                "score": -0.5511,
+                "confidence": 0.36464860788000714
+              },
+              {
+                "latex": "= 5 - 5",
+                "score": -2.747,
+                "confidence": 0.04057021479909997
+              },
+              {
+                "latex": "- 5 = 5 - 5",
+                "score": -3.3402,
+                "confidence": 0.022417326666110217
+              },
+              {
+                "latex": "- 5 . 5",
+                "score": -3.3909,
+                "confidence": 0.02130909915209439
+              }
+            ]
+          },
+          {
+            "lineIndex": 6,
+            "sourceLineIndex": 6,
+            "expectedLatex": "- 6 = 4 x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_7.png",
+            "predictedLatex": "- 6 = 4 X",
+            "elapsedSeconds": 0.485,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 3,
+              "expectedTokens": 4,
+              "missingTokens": [
+                "x"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "- 6 = 4 X",
+                "score": -0.1279,
+                "confidence": 0.4669074000031703
+              },
+              {
+                "latex": "- 6 = 4 x",
+                "score": -0.4149,
+                "confidence": 0.3504194799831998
+              },
+              {
+                "latex": "- 6 = 4 \\times",
+                "score": -1.9511,
+                "confidence": 0.07540932575178083
+              },
+              {
+                "latex": "- \\sigma = 4 X",
+                "score": -2.1371,
+                "confidence": 0.06261037198709468
+              },
+              {
+                "latex": "- 6 = q X",
+                "score": -2.4751,
+                "confidence": 0.04465342227475455
+              }
+            ]
+          },
+          {
+            "lineIndex": 7,
+            "sourceLineIndex": 7,
+            "expectedLatex": "/ 4       / 4",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_8.png",
+            "predictedLatex": "1 4 / 4",
+            "elapsedSeconds": 0.407,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 1,
+              "expectedTokens": 1,
+              "missingTokens": []
+            },
+            "topCandidates": [
+              {
+                "latex": "1 4 / 4",
+                "score": -0.2389,
+                "confidence": 0.40536523157217097
+              },
+              {
+                "latex": "/ 4 / 4",
+                "score": -0.8765,
+                "confidence": 0.21425962209714136
+              },
+              {
+                "latex": "1 4 \\div 4",
+                "score": -1.282,
+                "confidence": 0.1428347642026703
+              },
+              {
+                "latex": "1 4 , 4",
+                "score": -1.4466,
+                "confidence": 0.12115715046123084
+              },
+              {
+                "latex": "1 4 . 4",
+                "score": -1.4868,
+                "confidence": 0.11638323166678642
+              }
+            ]
+          },
+          {
+            "lineIndex": 8,
+            "sourceLineIndex": 8,
+            "expectedLatex": "x = - \\frac { 3 } { 2 }",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_dense_line-order_line_9.png",
+            "predictedLatex": "x = - \\frac { 3 } { 2 }",
+            "elapsedSeconds": 1.512,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "x = - \\frac { 3 } { 2 }",
+                "score": -0.0003,
+                "confidence": 0.6440791217877126
+              },
+              {
+                "latex": "x = - \\frac { 3 } { 2 } }",
+                "score": -1.6908,
+                "confidence": 0.11878576523277923
+              },
+              {
+                "latex": "x = - \\frac { z } { 2 }",
+                "score": -2.0901,
+                "confidence": 0.07968023626749884
+              },
+              {
+                "latex": "x = - \\frac { j } { 2 }",
+                "score": -2.0958,
+                "confidence": 0.07922735087034255
+              },
+              {
+                "latex": "x = - - \\frac { 3 } { 2 }",
+                "score": -2.1085,
+                "confidence": 0.07822752584166677
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "rational_solve",
+    "family": "rational",
+    "spacing": "tight-steps",
+    "expectedLineCount": 9,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/rational-solve_tight-steps.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/rational-solve_tight-steps.json",
+    "rawDetections": 11,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 9,
+        "rawDetections": 11,
+        "dbnetBands": 9,
+        "baseCandidates": 1,
+        "splitCandidates": 9,
+        "splitStrokeCounts": [
+          10,
+          11,
+          9,
+          4,
+          8,
+          4,
+          6,
+          4,
+          7
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 121,
+            "yMin": 62,
+            "xMax": 313,
+            "yMax": 141
+          },
+          {
+            "xMin": 165,
+            "yMin": 159,
+            "xMax": 797,
+            "yMax": 229
+          },
+          {
+            "xMin": 144,
+            "yMin": 248,
+            "xMax": 695,
+            "yMax": 308
+          },
+          {
+            "xMin": 217,
+            "yMin": 334,
+            "xMax": 413,
+            "yMax": 382
+          },
+          {
+            "xMin": 166,
+            "yMin": 427,
+            "xMax": 647,
+            "yMax": 485
+          },
+          {
+            "xMin": 225,
+            "yMin": 512,
+            "xMax": 451,
+            "yMax": 561
+          },
+          {
+            "xMin": 158,
+            "yMin": 603,
+            "xMax": 482,
+            "yMax": 653
+          },
+          {
+            "xMin": 234,
+            "yMin": 696,
+            "xMax": 471,
+            "yMax": 750
+          },
+          {
+            "xMin": 185,
+            "yMin": 786,
+            "xMax": 379,
+            "yMax": 863
+          }
+        ],
+        "splitSyntheticLatex": [
+          "\\frac { x - 1 } { x + 1 } = 5",
+          "x - 1 = 5 ( x + 1 )",
+          "x - 1 = 5 x + 5",
+          "- x       - x",
+          "- 1 = 4 x + 5",
+          "- 5       - 5",
+          "- 6 = 4 x",
+          "/ 4       / 4",
+          "x = - \\frac { 3 } { 2 }"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ],
+          [
+            5
+          ],
+          [
+            6
+          ],
+          [
+            7
+          ],
+          [
+            8
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "\\frac { x - 1 } { x + 1 } = 5",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_1.png",
+            "predictedLatex": "\\frac { x - 1 } { x + 1 } = 5",
+            "elapsedSeconds": 2.383,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = 5",
+                "score": -0.0003,
+                "confidence": 0.445666317513637
+              },
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = b",
+                "score": -1.0821,
+                "confidence": 0.15107410907498606
+              },
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = 0",
+                "score": -1.1242,
+                "confidence": 0.14484591250341144
+              },
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } } = 5",
+                "score": -1.1412,
+                "confidence": 0.14240434412290967
+              },
+              {
+                "latex": "\\frac { x - 1 } { x + 1 } = = 5",
+                "score": -1.3462,
+                "confidence": 0.11600931678505594
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "x - 1 = 5 ( x + 1 )",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_2.png",
+            "predictedLatex": "x - 1 = 5 ( x + 1 )",
+            "elapsedSeconds": 3.73,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "x - 1 = 5 ( x + 1 )",
+                "score": -0.182,
+                "confidence": 0.3060354448371075
+              },
+              {
+                "latex": "X - 1 = 5 ( X + 1 )",
+                "score": -0.3428,
+                "confidence": 0.2605776579879714
+              },
+              {
+                "latex": "\\lim \\limits _ { x - 1 } = 5 ( x + 1 )",
+                "score": -0.8833,
+                "confidence": 0.15177526819103107
+              },
+              {
+                "latex": "x ^ { x - 1 } = 5 ( x + 1 )",
+                "score": -0.9505,
+                "confidence": 0.1419111174319566
+              },
+              {
+                "latex": "X _ { n - 1 } = 5 ( X + 1 )",
+                "score": -0.9662,
+                "confidence": 0.13970051155193347
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "x - 1 = 5 x + 5",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_3.png",
+            "predictedLatex": "x - 1 = 5 x + 5",
+            "elapsedSeconds": 6.639,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "x - 1 = 5 x + 5",
+                "score": -0.0174,
+                "confidence": 0.482075659783926
+              },
+              {
+                "latex": "x - 1 = 5 X + 5",
+                "score": -1.124,
+                "confidence": 0.1594134389240691
+              },
+              {
+                "latex": "x = 1 = 5 x + 5",
+                "score": -1.1412,
+                "confidence": 0.15669497359530396
+              },
+              {
+                "latex": "x - x = 5 x + 5",
+                "score": -1.5706,
+                "confidence": 0.10199268267576894
+              },
+              {
+                "latex": "X - 1 = 5 X + 5",
+                "score": -1.5921,
+                "confidence": 0.0998232450209319
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "- x       - x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_4.png",
+            "predictedLatex": "- x - x",
+            "elapsedSeconds": 2.73,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "- x - x",
+                "score": -0.0001,
+                "confidence": 0.9327798836683789
+              },
+              {
+                "latex": "- x = x",
+                "score": -3.6749,
+                "confidence": 0.023650145090596684
+              },
+              {
+                "latex": "- X - x",
+                "score": -3.6969,
+                "confidence": 0.023135523492420526
+              },
+              {
+                "latex": "- x - X",
+                "score": -4.1155,
+                "confidence": 0.015222418610495173
+              },
+              {
+                "latex": "= x - x",
+                "score": -5.1873,
+                "confidence": 0.005212029138108708
+              }
+            ]
+          },
+          {
+            "lineIndex": 4,
+            "sourceLineIndex": 4,
+            "expectedLatex": "- 1 = 4 x + 5",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_5.png",
+            "predictedLatex": "- 1 = 4 x + 5",
+            "elapsedSeconds": 2.639,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "- 1 = 4 x + 5",
+                "score": -0.0129,
+                "confidence": 0.5171978251492119
+              },
+              {
+                "latex": "- 1 = 4 X + 5",
+                "score": -0.7673,
+                "confidence": 0.24323436458099643
+              },
+              {
+                "latex": "- 1 = 4 \\times + 5",
+                "score": -1.6214,
+                "confidence": 0.10353662779513367
+              },
+              {
+                "latex": "- 1 \\leq 4 x + 5",
+                "score": -2.0368,
+                "confidence": 0.06834206356796459
+              },
+              {
+                "latex": "- 1 = q x + 5",
+                "score": -2.0464,
+                "confidence": 0.0676891189066935
+              }
+            ]
+          },
+          {
+            "lineIndex": 5,
+            "sourceLineIndex": 5,
+            "expectedLatex": "- 5       - 5",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_6.png",
+            "predictedLatex": "- 5 - 5",
+            "elapsedSeconds": 2.155,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "- 5 - 5",
+                "score": -0.004,
+                "confidence": 0.8528286631977042
+              },
+              {
+                "latex": "- 5 = 5",
+                "score": -2.1928,
+                "confidence": 0.09556041483456604
+              },
+              {
+                "latex": "= 5 - 5",
+                "score": -3.7177,
+                "confidence": 0.02079803817060868
+              },
+              {
+                "latex": "- \\sigma - 5",
+                "score": -3.8336,
+                "confidence": 0.018521989790494305
+              },
+              {
+                "latex": "- 5 . 5",
+                "score": -4.2437,
+                "confidence": 0.012290894006626718
+              }
+            ]
+          },
+          {
+            "lineIndex": 6,
+            "sourceLineIndex": 6,
+            "expectedLatex": "- 6 = 4 x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_7.png",
+            "predictedLatex": "- 6 = 4 X",
+            "elapsedSeconds": 1.306,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 3,
+              "expectedTokens": 4,
+              "missingTokens": [
+                "x"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "- 6 = 4 X",
+                "score": -0.0381,
+                "confidence": 0.5462702755615364
+              },
+              {
+                "latex": "- 6 = 4 x",
+                "score": -0.836,
+                "confidence": 0.24597105427335084
+              },
+              {
+                "latex": "- \\sigma = 4 X",
+                "score": -1.9494,
+                "confidence": 0.08078682242715082
+              },
+              {
+                "latex": "- 6 = 4 \\times",
+                "score": -2.0303,
+                "confidence": 0.07450854847649159
+              },
+              {
+                "latex": "- 8 = 4 X",
+                "score": -2.3811,
+                "confidence": 0.05246329926147031
+              }
+            ]
+          },
+          {
+            "lineIndex": 7,
+            "sourceLineIndex": 7,
+            "expectedLatex": "/ 4       / 4",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_8.png",
+            "predictedLatex": "1 4 / 4",
+            "elapsedSeconds": 1.215,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 1,
+              "expectedTokens": 1,
+              "missingTokens": []
+            },
+            "topCandidates": [
+              {
+                "latex": "1 4 / 4",
+                "score": -0.3813,
+                "confidence": 0.34973129185305146
+              },
+              {
+                "latex": "/ 4 / 4",
+                "score": -0.7728,
+                "confidence": 0.23643305966649708
+              },
+              {
+                "latex": "1 4 \\div 4",
+                "score": -1.2086,
+                "confidence": 0.152912386796824
+              },
+              {
+                "latex": "1 4 . 4",
+                "score": -1.3621,
+                "confidence": 0.13115307101110266
+              },
+              {
+                "latex": "/ 4 , 4",
+                "score": -1.3727,
+                "confidence": 0.12977019067252477
+              }
+            ]
+          },
+          {
+            "lineIndex": 8,
+            "sourceLineIndex": 8,
+            "expectedLatex": "x = - \\frac { 3 } { 2 }",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/rational-solve_tight-steps_line-order_line_9.png",
+            "predictedLatex": "x = - \\frac { 3 } { 2 }",
+            "elapsedSeconds": 2.691,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "x = - \\frac { 3 } { 2 }",
+                "score": -0.0008,
+                "confidence": 0.6123496919344512
+              },
+              {
+                "latex": "x = - \\frac { 3 } { 2 } }",
+                "score": -1.5377,
+                "confidence": 0.13168378907422743
+              },
+              {
+                "latex": "x = - \\frac { z } { 2 }",
+                "score": -1.8257,
+                "confidence": 0.09873144736836281
+              },
+              {
+                "latex": "x = - \\frac { j } { 2 }",
+                "score": -1.9282,
+                "confidence": 0.08911284708816529
+              },
+              {
+                "latex": "x = - \\frac { s } { 2 }",
+                "score": -2.1968,
+                "confidence": 0.06812222453479325
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "logarithmic_solve",
+    "family": "logarithmic",
+    "spacing": "dense",
+    "expectedLineCount": 5,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/logarithmic-solve_dense.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/logarithmic-solve_dense.json",
+    "rawDetections": 5,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 5,
+        "rawDetections": 5,
+        "dbnetBands": 5,
+        "baseCandidates": 1,
+        "splitCandidates": 5,
+        "splitStrokeCounts": [
+          12,
+          4,
+          10,
+          5,
+          5
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 122,
+            "yMin": 67,
+            "xMax": 664,
+            "yMax": 150
+          },
+          {
+            "xMin": 166,
+            "yMin": 182,
+            "xMax": 381,
+            "yMax": 226
+          },
+          {
+            "xMin": 146,
+            "yMin": 295,
+            "xMax": 552,
+            "yMax": 379
+          },
+          {
+            "xMin": 214,
+            "yMin": 411,
+            "xMax": 525,
+            "yMax": 492
+          },
+          {
+            "xMin": 165,
+            "yMin": 529,
+            "xMax": 412,
+            "yMax": 573
+          }
+        ],
+        "splitSyntheticLatex": [
+          "\\log _ { 2 } ( x ) + 3 = 7",
+          "- 3       - 3",
+          "\\log _ { 2 } ( x ) = 4",
+          "2 ^ { 4 } = x",
+          "x = 16"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "\\log _ { 2 } ( x ) + 3 = 7",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_dense_line-order_line_1.png",
+            "predictedLatex": "1 0 8 2 ( x ) + 3 = 7",
+            "elapsedSeconds": 7.441,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 6,
+              "expectedTokens": 8,
+              "missingTokens": [
+                "\\log",
+                "_"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "1 0 8 2 ( x ) + 3 = 7",
+                "score": -0.3579,
+                "confidence": 0.26204185535325514
+              },
+              {
+                "latex": "\\log 2 ( x ) + 3 = 7",
+                "score": -0.5608,
+                "confidence": 0.21392045584367692
+              },
+              {
+                "latex": "1 0 / 2 ( x ) + 3 = 7",
+                "score": -0.7466,
+                "confidence": 0.17764803196717305
+              },
+              {
+                "latex": "\\log 2 2 ( x ) + 3 = 7",
+                "score": -0.7541,
+                "confidence": 0.1763206556108264
+              },
+              {
+                "latex": "1 0 2 2 ( x ) + 3 = 7",
+                "score": -0.7902,
+                "confidence": 0.17006900122506838
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "- 3       - 3",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_dense_line-order_line_2.png",
+            "predictedLatex": "- 3 - 3",
+            "elapsedSeconds": 1.148,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "- 3 - 3",
+                "score": -0.0201,
+                "confidence": 0.7344394448418424
+              },
+              {
+                "latex": "- 3 = 3",
+                "score": -1.4303,
+                "confidence": 0.17927259923553696
+              },
+              {
+                "latex": "= 3 - 3",
+                "score": -2.5952,
+                "confidence": 0.055924778581304055
+              },
+              {
+                "latex": "- = 3 - 3",
+                "score": -3.799,
+                "confidence": 0.016780333038003692
+              },
+              {
+                "latex": "- 3 - z",
+                "score": -4.0104,
+                "confidence": 0.013582844303312728
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "\\log _ { 2 } ( x ) = 4",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_dense_line-order_line_3.png",
+            "predictedLatex": "1 0 8 2 ( x ) = 4",
+            "elapsedSeconds": 6.917,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 4,
+              "expectedTokens": 6,
+              "missingTokens": [
+                "\\log",
+                "_"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "1 0 8 2 ( x ) = 4",
+                "score": -0.2212,
+                "confidence": 0.33450196816629313
+              },
+              {
+                "latex": "\\log 2 ( x ) = 4",
+                "score": -0.5314,
+                "confidence": 0.2452903874189832
+              },
+              {
+                "latex": "1 0 8 / 2 ( x ) = 4",
+                "score": -1.0147,
+                "confidence": 0.15128156410803875
+              },
+              {
+                "latex": "1 0 \\log 2 ( x ) = 4",
+                "score": -1.0706,
+                "confidence": 0.14305694438203984
+              },
+              {
+                "latex": "1 0 / 2 ( x ) = 4",
+                "score": -1.1986,
+                "confidence": 0.12586913592464513
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "2 ^ { 4 } = x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_dense_line-order_line_4.png",
+            "predictedLatex": "2 4 = x",
+            "elapsedSeconds": 3.37,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 4,
+              "expectedTokens": 5,
+              "missingTokens": [
+                "^"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "2 4 = x",
+                "score": -0.2353,
+                "confidence": 0.44515053210173283
+              },
+              {
+                "latex": "2 4 4 = x",
+                "score": -0.8399,
+                "confidence": 0.24318257516386854
+              },
+              {
+                "latex": "2 4 k = x",
+                "score": -1.1866,
+                "confidence": 0.17193431242271934
+              },
+              {
+                "latex": "2 . 4 = x",
+                "score": -2.0318,
+                "confidence": 0.07384087937729168
+              },
+              {
+                "latex": "2 4 a = x",
+                "score": -2.1457,
+                "confidence": 0.06589170093438766
+              }
+            ]
+          },
+          {
+            "lineIndex": 4,
+            "sourceLineIndex": 4,
+            "expectedLatex": "x = 16",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_dense_line-order_line_5.png",
+            "predictedLatex": "x = 1 6",
+            "elapsedSeconds": 5.236,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "x = 1 6",
+                "score": -0.0138,
+                "confidence": 0.7512613293476641
+              },
+              {
+                "latex": "X = 1 6",
+                "score": -1.3973,
+                "confidence": 0.18834089015650352
+              },
+              {
+                "latex": "x = 1 0",
+                "score": -3.3433,
+                "confidence": 0.02690342404426187
+              },
+              {
+                "latex": "\\times = 1 6",
+                "score": -3.6588,
+                "confidence": 0.019624005091289785
+              },
+              {
+                "latex": "k = 1 6",
+                "score": -4.0058,
+                "confidence": 0.013870351360280824
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "logarithmic_solve",
+    "family": "logarithmic",
+    "spacing": "tight-steps",
+    "expectedLineCount": 5,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/logarithmic-solve_tight-steps.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/logarithmic-solve_tight-steps.json",
+    "rawDetections": 5,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 5,
+        "rawDetections": 5,
+        "dbnetBands": 4,
+        "baseCandidates": 1,
+        "splitCandidates": 5,
+        "splitStrokeCounts": [
+          12,
+          4,
+          10,
+          5,
+          5
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 119,
+            "yMin": 58,
+            "xMax": 664,
+            "yMax": 146
+          },
+          {
+            "xMin": 167,
+            "yMin": 162,
+            "xMax": 380,
+            "yMax": 208
+          },
+          {
+            "xMin": 144,
+            "yMin": 259,
+            "xMax": 552,
+            "yMax": 343
+          },
+          {
+            "xMin": 215,
+            "yMin": 359,
+            "xMax": 525,
+            "yMax": 441
+          },
+          {
+            "xMin": 164,
+            "yMin": 461,
+            "xMax": 412,
+            "yMax": 505
+          }
+        ],
+        "splitSyntheticLatex": [
+          "\\log _ { 2 } ( x ) + 3 = 7",
+          "- 3       - 3",
+          "\\log _ { 2 } ( x ) = 4",
+          "2 ^ { 4 } = x",
+          "x = 16"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            4
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "\\log _ { 2 } ( x ) + 3 = 7",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_tight-steps_line-order_line_1.png",
+            "predictedLatex": "1 0 8 / 2 ( x ) + 3 = 7",
+            "elapsedSeconds": 2.127,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 6,
+              "expectedTokens": 8,
+              "missingTokens": [
+                "\\log",
+                "_"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "1 0 8 / 2 ( x ) + 3 = 7",
+                "score": -0.529,
+                "confidence": 0.2205936019298974
+              },
+              {
+                "latex": "\\log _ { 2 } 2 ( x ) + 3 = 7",
+                "score": -0.5396,
+                "confidence": 0.21826765902537246
+              },
+              {
+                "latex": "\\log 2 / 2 ( x ) + 3 = 7",
+                "score": -0.5931,
+                "confidence": 0.2068972107191429
+              },
+              {
+                "latex": "1 0 8 2 ( x ) + 3 = 7",
+                "score": -0.7441,
+                "confidence": 0.17790009049586375
+              },
+              {
+                "latex": "1 0 2 / 2 ( x ) + 3 = 7",
+                "score": -0.7529,
+                "confidence": 0.17634143782972336
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "- 3       - 3",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_tight-steps_line-order_line_2.png",
+            "predictedLatex": "- 3 - 3",
+            "elapsedSeconds": 2.986,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "- 3 - 3",
+                "score": -0.0007,
+                "confidence": 0.908445203561671
+              },
+              {
+                "latex": "- 3 = 3",
+                "score": -2.8684,
+                "confidence": 0.05162647233754401
+              },
+              {
+                "latex": "- 3 - z",
+                "score": -4.0149,
+                "confidence": 0.01640415359465637
+              },
+              {
+                "latex": "= 3 - 3",
+                "score": -4.2525,
+                "confidence": 0.012934970962148837
+              },
+              {
+                "latex": "- 3 . 3",
+                "score": -4.4526,
+                "confidence": 0.010589199543979785
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "\\log _ { 2 } ( x ) = 4",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_tight-steps_line-order_line_3.png",
+            "predictedLatex": "1 0 8 2 ( x ) = 4",
+            "elapsedSeconds": 1.552,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 4,
+              "expectedTokens": 6,
+              "missingTokens": [
+                "\\log",
+                "_"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "1 0 8 2 ( x ) = 4",
+                "score": -0.4981,
+                "confidence": 0.26728310903196534
+              },
+              {
+                "latex": "\\log 8 2 ( x ) = 4",
+                "score": -0.7538,
+                "confidence": 0.20697715608470352
+              },
+              {
+                "latex": "1 0 8 / 2 ( x ) = 4",
+                "score": -0.7946,
+                "confidence": 0.1987024401580985
+              },
+              {
+                "latex": "1 0 8 \\times 2 ( x ) = 4",
+                "score": -0.9834,
+                "confidence": 0.16451609873983702
+              },
+              {
+                "latex": "1 0 8 2 2 ( x ) = 4",
+                "score": -0.9956,
+                "confidence": 0.16252119598539558
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "2 ^ { 4 } = x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_tight-steps_line-order_line_4.png",
+            "predictedLatex": "2 4 i = x",
+            "elapsedSeconds": 1.392,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 4,
+              "expectedTokens": 5,
+              "missingTokens": [
+                "^"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "2 4 i = x",
+                "score": -0.3666,
+                "confidence": 0.29642137415210346
+              },
+              {
+                "latex": "2 4 4 = x",
+                "score": -0.4874,
+                "confidence": 0.2626919369818574
+              },
+              {
+                "latex": "2 4 k = x",
+                "score": -0.8953,
+                "confidence": 0.17470205906230563
+              },
+              {
+                "latex": "2 4 _ { k } = x",
+                "score": -1.0341,
+                "confidence": 0.15206103759188763
+              },
+              {
+                "latex": "2 4 _ { i } = x",
+                "score": -1.3211,
+                "confidence": 0.11412359221184595
+              }
+            ]
+          },
+          {
+            "lineIndex": 4,
+            "sourceLineIndex": 4,
+            "expectedLatex": "x = 16",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/logarithmic-solve_tight-steps_line-order_line_5.png",
+            "predictedLatex": "x = 1 6",
+            "elapsedSeconds": 1.171,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "x = 1 6",
+                "score": -0.0058,
+                "confidence": 0.7542762148928034
+              },
+              {
+                "latex": "X = 1 6",
+                "score": -2.1536,
+                "confidence": 0.08805473710572007
+              },
+              {
+                "latex": "x = 1 0",
+                "score": -2.1914,
+                "confidence": 0.08478839090097465
+              },
+              {
+                "latex": "x = 2 6",
+                "score": -2.9577,
+                "confidence": 0.03940365717408761
+              },
+              {
+                "latex": "x = 1 8",
+                "score": -3.1207,
+                "confidence": 0.03347699992641419
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "derivative_evaluate",
+    "family": "derivative",
+    "spacing": "dense",
+    "expectedLineCount": 4,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/derivative-evaluate_dense.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/derivative-evaluate_dense.json",
+    "rawDetections": 4,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 4,
+        "rawDetections": 4,
+        "dbnetBands": 4,
+        "baseCandidates": 1,
+        "splitCandidates": 4,
+        "splitStrokeCounts": [
+          12,
+          13,
+          17,
+          9
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 120,
+            "yMin": 62,
+            "xMax": 699,
+            "yMax": 146
+          },
+          {
+            "xMin": 165,
+            "yMin": 185,
+            "xMax": 754,
+            "yMax": 271
+          },
+          {
+            "xMin": 142,
+            "yMin": 294,
+            "xMax": 837,
+            "yMax": 389
+          },
+          {
+            "xMin": 217,
+            "yMin": 410,
+            "xMax": 676,
+            "yMax": 491
+          }
+        ],
+        "splitSyntheticLatex": [
+          "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+          "f ' ( x ) = 3 x ^ { 2 } + 4 x",
+          "f ' ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+          "f ' ( 2 ) = 20"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_dense_line-order_line_1.png",
+            "predictedLatex": "f ( x ) = x 3 + 2 x 2",
+            "elapsedSeconds": 1.863,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 6,
+              "expectedTokens": 7,
+              "missingTokens": [
+                "^"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "f ( x ) = x 3 + 2 x 2",
+                "score": -0.2489,
+                "confidence": 0.2601839070133915
+              },
+              {
+                "latex": "f ( x ) = x _ { 0 } + 2 x 2",
+                "score": -0.4827,
+                "confidence": 0.20594079316101616
+              },
+              {
+                "latex": "f ( x ) = x _ { 3 } + 2 x 2",
+                "score": -0.4859,
+                "confidence": 0.20528283591594976
+              },
+              {
+                "latex": "f ( x ) = x z + 2 x 2",
+                "score": -0.5617,
+                "confidence": 0.1902975149526666
+              },
+              {
+                "latex": "f ( x ) = x _ { 3 } + 2 x _ { 2 }",
+                "score": -0.8809,
+                "confidence": 0.1382949489569759
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "f ' ( x ) = 3 x ^ { 2 } + 4 x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_dense_line-order_line_2.png",
+            "predictedLatex": "f ^ { \\prime } ( x ) = 3 x 2 + 4 x",
+            "elapsedSeconds": 1.775,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 8,
+              "expectedTokens": 8,
+              "missingTokens": []
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { \\prime } ( x ) = 3 x 2 + 4 x",
+                "score": -0.0669,
+                "confidence": 0.26995530857181105
+              },
+              {
+                "latex": "f ^ { f } ( x ) = 3 x 2 + 4 x",
+                "score": -0.3301,
+                "confidence": 0.20748445505973606
+              },
+              {
+                "latex": "f ^ { p } ( x ) = 3 x 2 + 4 x",
+                "score": -0.3366,
+                "confidence": 0.2061401797296366
+              },
+              {
+                "latex": "f ^ { P } ( x ) = 3 x 2 + 4 x",
+                "score": -0.5503,
+                "confidence": 0.16647687676532666
+              },
+              {
+                "latex": "f ^ { \\prime } ( x ) = 3 x z + 4 x",
+                "score": -0.6549,
+                "confidence": 0.14994317987348954
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "f ' ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_dense_line-order_line_3.png",
+            "predictedLatex": "f ^ { \\prime } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+            "elapsedSeconds": 4.994,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 7,
+              "expectedTokens": 7,
+              "missingTokens": []
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { \\prime } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.2083,
+                "confidence": 0.2578625383345409
+              },
+              {
+                "latex": "f ^ { 2 } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.3849,
+                "confidence": 0.21611845189605125
+              },
+              {
+                "latex": "f ^ { 1 } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.566,
+                "confidence": 0.18031884514252172
+              },
+              {
+                "latex": "f ^ { 8 } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.5944,
+                "confidence": 0.17526982537801666
+              },
+              {
+                "latex": "f ^ { \\prime } ( 2 ) = 3 ( 2 ) z + 4 ( 2 )",
+                "score": -0.6224,
+                "confidence": 0.1704303392488694
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "f ' ( 2 ) = 20",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_dense_line-order_line_4.png",
+            "predictedLatex": "f ( 2 ) = 2 0",
+            "elapsedSeconds": 4.414,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 3,
+              "expectedTokens": 4,
+              "missingTokens": [
+                "20"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "f ( 2 ) = 2 0",
+                "score": -0.4021,
+                "confidence": 0.24836820738599852
+              },
+              {
+                "latex": "f + ( 2 ) = 2 0",
+                "score": -0.5271,
+                "confidence": 0.21918417371863214
+              },
+              {
+                "latex": "f \\cdot ( 2 ) = 2 0",
+                "score": -0.6911,
+                "confidence": 0.1860308187660943
+              },
+              {
+                "latex": "f \\div ( 2 ) = 2 0",
+                "score": -0.6972,
+                "confidence": 0.1848994848481466
+              },
+              {
+                "latex": "f o ( 2 ) = 2 0",
+                "score": -0.8324,
+                "confidence": 0.16151731528112845
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "derivative_evaluate",
+    "family": "derivative",
+    "spacing": "tight-steps",
+    "expectedLineCount": 4,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/derivative-evaluate_tight-steps.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/derivative-evaluate_tight-steps.json",
+    "rawDetections": 4,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 4,
+        "rawDetections": 4,
+        "dbnetBands": 4,
+        "baseCandidates": 1,
+        "splitCandidates": 4,
+        "splitStrokeCounts": [
+          13,
+          13,
+          17,
+          9
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 120,
+            "yMin": 58,
+            "xMax": 700,
+            "yMax": 150
+          },
+          {
+            "xMin": 162,
+            "yMin": 160,
+            "xMax": 753,
+            "yMax": 246
+          },
+          {
+            "xMin": 142,
+            "yMin": 258,
+            "xMax": 838,
+            "yMax": 353
+          },
+          {
+            "xMin": 220,
+            "yMin": 358,
+            "xMax": 678,
+            "yMax": 439
+          }
+        ],
+        "splitSyntheticLatex": [
+          "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+          "f ' ( x ) = 3 x ^ { 2 } + 4 x",
+          "f ' ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+          "f ' ( 2 ) = 20"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_tight-steps_line-order_line_1.png",
+            "error": "HTTP 408: {\"timedOut\":true,\"elapsedSeconds\":10.191,\"selectionPenalty\":-1000,\"candidates\":[],\"top\":null}",
+            "match": false
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "f ' ( x ) = 3 x ^ { 2 } + 4 x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_tight-steps_line-order_line_2.png",
+            "predictedLatex": "\\int \\limits _ { 0 . 0 } ^ { p } ( x ) = 3 x 2 + 4 x",
+            "elapsedSeconds": 4.863,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 7,
+              "expectedTokens": 8,
+              "missingTokens": [
+                "f"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "\\int \\limits _ { 0 . 0 } ^ { p } ( x ) = 3 x 2 + 4 x",
+                "score": -0.6749,
+                "confidence": 0.23109504076317372
+              },
+              {
+                "latex": "\\int \\limits _ { n \\rightarrow 0 } ^ { \\prime } ( x ) = 3 x 2 + 4 x",
+                "score": -0.7723,
+                "confidence": 0.20964781633163737
+              },
+              {
+                "latex": "\\int \\limits _ { n \\rightarrow 0 } ^ { 1 } ( x ) = 3 x 2 + 4 x",
+                "score": -0.8622,
+                "confidence": 0.19162283859527537
+              },
+              {
+                "latex": "\\int \\limits _ { \\ldots , \\ldots } ^ { p } ( x ) = 3 x 2 + 4 x",
+                "score": -0.8791,
+                "confidence": 0.1884116238171146
+              },
+              {
+                "latex": "\\int \\limits _ { n \\rightarrow 0 } ^ { 0 } ( x ) = 3 x 2 + 4 x",
+                "score": -0.9291,
+                "confidence": 0.17922268049279894
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "f ' ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_tight-steps_line-order_line_3.png",
+            "predictedLatex": "f ^ { i } ( 2 ) ^ { i } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+            "elapsedSeconds": 5.654,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 7,
+              "expectedTokens": 7,
+              "missingTokens": []
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { i } ( 2 ) ^ { i } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.7618,
+                "confidence": 0.2776140598892231
+              },
+              {
+                "latex": "f ^ { \\prime } ( 2 ) ^ { \\prime } = 3 ( 2 ) 2 / 2 + 4 ( 2 )",
+                "score": -1.0694,
+                "confidence": 0.20410445056132245
+              },
+              {
+                "latex": "f ^ { \\prime } ( 2 ) ^ { \\prime } = \\sin ( 2 ) 2 + 4 ( 2 )",
+                "score": -1.128,
+                "confidence": 0.19248762681301737
+              },
+              {
+                "latex": "\\int \\limits _ { i } ^ { i } ( 2 ) ^ { i } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -1.2819,
+                "confidence": 0.16503075910847914
+              },
+              {
+                "latex": "f _ { i } ^ { i } ( 2 ) ^ { i } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -1.3081,
+                "confidence": 0.1607631036279579
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "f ' ( 2 ) = 20",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_tight-steps_line-order_line_4.png",
+            "predictedLatex": "f ^ { 0 } ( 2 ) = 2 0",
+            "elapsedSeconds": 1.771,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 3,
+              "expectedTokens": 4,
+              "missingTokens": [
+                "20"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { 0 } ( 2 ) = 2 0",
+                "score": -0.5767,
+                "confidence": 0.24876518240151466
+              },
+              {
+                "latex": "f ^ { \\prime } ( 2 ) = 2 0",
+                "score": -0.7808,
+                "confidence": 0.2028383606596869
+              },
+              {
+                "latex": "f ^ { 2 } ( 2 ) = 2 0",
+                "score": -0.8626,
+                "confidence": 0.18690667142010595
+              },
+              {
+                "latex": "f ^ { i } ( 2 ) = 2 0",
+                "score": -0.8803,
+                "confidence": 0.1836275293530183
+              },
+              {
+                "latex": "f \\cdot ( 2 ) = 2 0",
+                "score": -0.9122,
+                "confidence": 0.17786225616567422
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "integral_evaluate",
+    "family": "integral",
+    "spacing": "dense",
+    "expectedLineCount": 4,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/integral-evaluate_dense.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/integral-evaluate_dense.json",
+    "rawDetections": 4,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 4,
+        "rawDetections": 4,
+        "dbnetBands": 4,
+        "baseCandidates": 1,
+        "splitCandidates": 4,
+        "splitStrokeCounts": [
+          11,
+          10,
+          13,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 118,
+            "yMin": 62,
+            "xMax": 402,
+            "yMax": 155
+          },
+          {
+            "xMin": 165,
+            "yMin": 185,
+            "xMax": 646,
+            "yMax": 278
+          },
+          {
+            "xMin": 148,
+            "yMin": 302,
+            "xMax": 914,
+            "yMax": 383
+          },
+          {
+            "xMin": 216,
+            "yMin": 431,
+            "xMax": 382,
+            "yMax": 475
+          }
+        ],
+        "splitSyntheticLatex": [
+          "\\int _ { 0 } ^ { 2 } ( 3 x ^ { 2 } + 1 ) d x",
+          "= [ x ^ { 3 } + x ] _ { 0 } ^ { 2 }",
+          "= ( 8 + 2 ) - ( 0 + 0 )",
+          "= 10"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "\\int _ { 0 } ^ { 2 } ( 3 x ^ { 2 } + 1 ) d x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/integral-evaluate_dense_line-order_line_1.png",
+            "predictedLatex": "f _ { 2 } ( 3 x 2 + 1 ) d x",
+            "elapsedSeconds": 3.428,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 6,
+              "expectedTokens": 8,
+              "missingTokens": [
+                "\\int",
+                "^"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "f _ { 2 } ( 3 x 2 + 1 ) d x",
+                "score": -0.0786,
+                "confidence": 0.3024498522725745
+              },
+              {
+                "latex": "\\phi _ { 2 } ( 3 x 2 + 1 ) d x",
+                "score": -0.5328,
+                "confidence": 0.19204226655668105
+              },
+              {
+                "latex": "\\beta _ { 2 } ( 3 x 2 + 1 ) d x",
+                "score": -0.5436,
+                "confidence": 0.18997936977182492
+              },
+              {
+                "latex": "f _ { 2 } ( 3 x z + 1 ) d x",
+                "score": -0.6126,
+                "confidence": 0.17731281447248645
+              },
+              {
+                "latex": "\\phi 2 ( 3 x 2 + 1 ) d x",
+                "score": -0.8617,
+                "confidence": 0.13821569692643315
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "= [ x ^ { 3 } + x ] _ { 0 } ^ { 2 }",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/integral-evaluate_dense_line-order_line_2.png",
+            "predictedLatex": "= ( x _ { 0 } z + x ] 0 2",
+            "elapsedSeconds": 3.32,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 5,
+              "expectedTokens": 7,
+              "missingTokens": [
+                "^",
+                "3"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "= ( x _ { 0 } z + x ] 0 2",
+                "score": -0.9399,
+                "confidence": 0.2198839862466641
+              },
+              {
+                "latex": "= ( x z + x ) 0 2",
+                "score": -0.9961,
+                "confidence": 0.2078673367268373
+              },
+              {
+                "latex": "= | x _ { 0 } z + x | 0 2",
+                "score": -1.0601,
+                "confidence": 0.194980601088911
+              },
+              {
+                "latex": "= ( x z + x ) 0 0 2",
+                "score": -1.0707,
+                "confidence": 0.19292472212571743
+              },
+              {
+                "latex": "= ( x _ { 0 } z + x ) 0 2",
+                "score": -1.1162,
+                "confidence": 0.18434335381187028
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "= ( 8 + 2 ) - ( 0 + 0 )",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/integral-evaluate_dense_line-order_line_3.png",
+            "predictedLatex": "= ( 8 + 2 ) - ( 0 + 0 )",
+            "elapsedSeconds": 3.246,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "= ( 8 + 2 ) - ( 0 + 0 )",
+                "score": -0.5876,
+                "confidence": 0.38379827185881055
+              },
+              {
+                "latex": "8 = ( 8 + 2 ) - ( 0 + 0 )",
+                "score": -1.0154,
+                "confidence": 0.25021413240013063
+              },
+              {
+                "latex": "= ( 8 + 2 ) - ( 0 + 0 + 0 )",
+                "score": -1.3372,
+                "confidence": 0.18136599851796684
+              },
+              {
+                "latex": "8 = ( 8 + 2 ) - ( 0 + 0 + 0 )",
+                "score": -1.844,
+                "confidence": 0.10925854880553917
+              },
+              {
+                "latex": "= ( 8 = ( 8 + 2 ) - ( 0 + 0 )",
+                "score": -2.2154,
+                "confidence": 0.07536304841755277
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "= 10",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/integral-evaluate_dense_line-order_line_4.png",
+            "predictedLatex": "= 1 0",
+            "elapsedSeconds": 4.384,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "= 1 0",
+                "score": -1.0628,
+                "confidence": 0.2924710730059457
+              },
+              {
+                "latex": "0 = 1 0",
+                "score": -1.1179,
+                "confidence": 0.2767918462375176
+              },
+              {
+                "latex": "n = 1 0",
+                "score": -1.4597,
+                "confidence": 0.19665791870380384
+              },
+              {
+                "latex": "5 = 1 0",
+                "score": -1.8937,
+                "confidence": 0.12741707566643626
+              },
+              {
+                "latex": "m = 1 0",
+                "score": -2.0715,
+                "confidence": 0.10666208638629666
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "integral_evaluate",
+    "family": "integral",
+    "spacing": "tight-steps",
+    "expectedLineCount": 4,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/integral-evaluate_tight-steps.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/integral-evaluate_tight-steps.json",
+    "rawDetections": 4,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 4,
+        "rawDetections": 4,
+        "dbnetBands": 4,
+        "baseCandidates": 1,
+        "splitCandidates": 4,
+        "splitStrokeCounts": [
+          10,
+          10,
+          13,
+          4
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 118,
+            "yMin": 58,
+            "xMax": 400,
+            "yMax": 151
+          },
+          {
+            "xMin": 163,
+            "yMin": 167,
+            "xMax": 645,
+            "yMax": 257
+          },
+          {
+            "xMin": 147,
+            "yMin": 271,
+            "xMax": 915,
+            "yMax": 344
+          },
+          {
+            "xMin": 217,
+            "yMin": 379,
+            "xMax": 381,
+            "yMax": 421
+          }
+        ],
+        "splitSyntheticLatex": [
+          "\\int _ { 0 } ^ { 2 } ( 3 x ^ { 2 } + 1 ) d x",
+          "= [ x ^ { 3 } + x ] _ { 0 } ^ { 2 }",
+          "= ( 8 + 2 ) - ( 0 + 0 )",
+          "= 10"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "\\int _ { 0 } ^ { 2 } ( 3 x ^ { 2 } + 1 ) d x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/integral-evaluate_tight-steps_line-order_line_1.png",
+            "predictedLatex": "f _ { 2 } ( 3 x 2 + 1 ) d x",
+            "elapsedSeconds": 2.352,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 6,
+              "expectedTokens": 8,
+              "missingTokens": [
+                "\\int",
+                "^"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "f _ { 2 } ( 3 x 2 + 1 ) d x",
+                "score": -0.0707,
+                "confidence": 0.27013274219006095
+              },
+              {
+                "latex": "\\beta _ { 2 } ( 3 x 2 + 1 ) d x",
+                "score": -0.2951,
+                "confidence": 0.21583483791695737
+              },
+              {
+                "latex": "\\phi _ { 2 } ( 3 x 2 + 1 ) d x",
+                "score": -0.3493,
+                "confidence": 0.20444796146261274
+              },
+              {
+                "latex": "f _ { 2 } ( 3 x z + 1 ) d x",
+                "score": -0.5229,
+                "confidence": 0.1718657202903156
+              },
+              {
+                "latex": "\\beta _ { 2 } ( 3 x z + 1 ) d x",
+                "score": -0.7444,
+                "confidence": 0.1377187381400533
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "= [ x ^ { 3 } + x ] _ { 0 } ^ { 2 }",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/integral-evaluate_tight-steps_line-order_line_2.png",
+            "predictedLatex": "= [ x _ { 0 } z + x ] _ { 0 } 0 2",
+            "elapsedSeconds": 7.263,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 5,
+              "expectedTokens": 7,
+              "missingTokens": [
+                "^",
+                "3"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "= [ x _ { 0 } z + x ] _ { 0 } 0 2",
+                "score": -1.0317,
+                "confidence": 0.23222586226725309
+              },
+              {
+                "latex": "= ( x _ { 0 } + x _ { 0 } + x ] 0 0 2",
+                "score": -1.1867,
+                "confidence": 0.19888175304989475
+              },
+              {
+                "latex": "= [ x _ { 0 } z + x ] { 0 } 0 2",
+                "score": -1.1891,
+                "confidence": 0.19840500916407502
+              },
+              {
+                "latex": "( x _ { 0 } = ( x 3 + x ) 0 0 2",
+                "score": -1.2429,
+                "confidence": 0.18801287458773897
+              },
+              {
+                "latex": "( x _ { 0 } = ( x z + x ) 0 0 2",
+                "score": -1.2728,
+                "confidence": 0.1824745009310381
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "= ( 8 + 2 ) - ( 0 + 0 )",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/integral-evaluate_tight-steps_line-order_line_3.png",
+            "predictedLatex": "= ( 8 + 2 ) - ( 0 + 0 )",
+            "elapsedSeconds": 4.851,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "= ( 8 + 2 ) - ( 0 + 0 )",
+                "score": -0.5857,
+                "confidence": 0.3543056622278613
+              },
+              {
+                "latex": "i = ( 8 + 2 ) - ( 0 + 0 )",
+                "score": -0.7158,
+                "confidence": 0.31108307328877266
+              },
+              {
+                "latex": "= ( 8 + 2 ) - ( 0 + 0 + 0 )",
+                "score": -1.4796,
+                "confidence": 0.14493132263136804
+              },
+              {
+                "latex": "\\div ( 8 + 2 ) - ( 0 + 0 + 0 )",
+                "score": -1.8259,
+                "confidence": 0.10250996293226468
+              },
+              {
+                "latex": "= ( 8 = ( 8 + 2 ) - ( 0 + 0 )",
+                "score": -1.988,
+                "confidence": 0.08716997891973344
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "= 10",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/integral-evaluate_tight-steps_line-order_line_4.png",
+            "predictedLatex": "= 1 0",
+            "elapsedSeconds": 1.491,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "exact"
+            },
+            "topCandidates": [
+              {
+                "latex": "= 1 0",
+                "score": -0.4855,
+                "confidence": 0.5357236462476166
+              },
+              {
+                "latex": "0 = 1 0",
+                "score": -1.7549,
+                "confidence": 0.15053843637106787
+              },
+              {
+                "latex": "e = 1 0",
+                "score": -2.0789,
+                "confidence": 0.10887696059285731
+              },
+              {
+                "latex": "1 = 1 0",
+                "score": -2.0938,
+                "confidence": 0.10726671996339651
+              },
+              {
+                "latex": "n = 1 0",
+                "score": -2.1883,
+                "confidence": 0.0975942368250618
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

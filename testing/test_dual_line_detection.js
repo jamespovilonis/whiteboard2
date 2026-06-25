@@ -202,6 +202,14 @@ function main() {
     ["dbnet-row-0", "dbnet-row-1", "dbnet-row-2", "dbnet-row-3", "dbnet-row-4"],
     "a five-row DBNet cover must beat the unsplit parent even with weak line scores"
   );
+  const dbnetRecognitionLines = predictor.filterLinesForRecognition(
+    dbnetEntries.map((entry) => entry.lineData)
+  );
+  assert.deepStrictEqual(
+    Array.from(dbnetRecognitionLines, (line) => line.candidateId).sort(),
+    ["dbnet-row-0", "dbnet-row-1", "dbnet-row-2", "dbnet-row-3", "dbnet-row-4"],
+    "CoMER recognition should skip the DBNet parent once child lines cover it"
+  );
 
   console.log("Dual line detection and global selection tests passed.");
 }

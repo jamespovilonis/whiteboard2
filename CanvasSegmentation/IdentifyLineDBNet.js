@@ -17,6 +17,7 @@ var IdentifyLineDBNet = (function () {
   var _resultCache = {};
   var _segmentationAnchors = [];
   var _activeFlush = null;
+  var _activeDetectionControllers = [];
   var _version = 0;
   var boxCanvas = null;
   var boxCtx = null;
@@ -403,7 +404,7 @@ var IdentifyLineDBNet = (function () {
     return horizontal / strokes.length >= 0.75;
   }
 
-  function rowHasLocalSupport(child, parent, allowance) {
+	  function rowHasLocalSupport(child, parent, allowance) {
     var childStrokes = child.strokes || [];
     var parentStrokes = parent.strokes || [];
     if (childStrokes.length === 0 || parentStrokes.length === 0) return false;
@@ -421,13 +422,87 @@ var IdentifyLineDBNet = (function () {
       }
       if (local) supported += 1;
     }
-    return supported / childStrokes.length >= 0.6;
-  }
+	    return supported / childStrokes.length >= 0.6;
+	  }
+	
+	  function rowHasTallOperatorStroke(row, medianHeight) {
+	    var strokes = row && row.strokes ? row.strokes : [];
+	    for (var i = 0; i < strokes.length; i++) {
+	      if (strokeHeight(strokes[i]) >= Math.max(48, medianHeight * 1.55)) return true;
+	    }
+	    return false;
+	  }
+
+	  function rowHasLocalHorizontalBridge(row, child) {
+	    var strokes = row && row.strokes ? row.strokes : [];
+	    var childBox = child && child.bbox ? child.bbox : null;
+	    if (!childBox) return false;
+	    var childWidth = Math.max(1, childBox.xMax - childBox.xMin);
+	    for (var i = 0; i < strokes.length; i++) {
+	      var box = strokes[i].canvasBbox;
+	      if (!box || !isHorizontalStroke(strokes[i])) continue;
+	      var width = box.xMax - box.xMin;
+	      if (width < childWidth * 0.6) continue;
+	      if (horizontalOverlapRatio(box, childBox) >= 0.45 ||
+	          horizontalGap(box, childBox) <= Math.max(18, childWidth * 0.2)) {
+	        return true;
+	      }
+	    }
+	    return false;
+	  }
 
   function mergeRows(target, source) {
     target.bbox = bboxUnion(target.bbox, source.bbox);
     target.strokes = uniqueStrokes(target.strokes.concat(source.strokes || []));
     target.detections = (target.detections || []).concat(source.detections || []);
+  }
+
+  function mergeTouchingLocalStacks(rows, candidateBox) {
+    var candidateWidth = candidateBox ? Math.max(1, candidateBox.xMax - candidateBox.xMin) : 1;
+    var changed = true;
+    while (changed) {
+      changed = false;
+      rows.sort(function (a, b) { return a.bbox.yMin - b.bbox.yMin; });
+      for (var i = 0; i < rows.length - 1; i++) {
+        var upper = rows[i];
+        var lower = rows[i + 1];
+        var gap = verticalGap(upper.bbox, lower.bbox);
+        var verticalTouch = gap <= 6 || verticalOverlapRatio(upper.bbox, lower.bbox) >= 0.08;
+        var aligned = horizontalOverlapRatio(upper.bbox, lower.bbox) >= 0.45;
+        var upperWidth = Math.max(1, upper.bbox.xMax - upper.bbox.xMin);
+        var lowerWidth = Math.max(1, lower.bbox.xMax - lower.bbox.xMin);
+	        var local = upperWidth <= candidateWidth * 0.55 && lowerWidth <= candidateWidth * 0.55;
+	        var widthRatio = Math.max(upperWidth, lowerWidth) / Math.max(1, Math.min(upperWidth, lowerWidth));
+	        var comparableWidths = widthRatio <= 1.55 ||
+	          (upperWidth <= candidateWidth * 0.35 && lowerWidth <= candidateWidth * 0.35);
+	        var compactLocal = upperWidth <= candidateWidth * 0.35 && lowerWidth <= candidateWidth * 0.35;
+	        var numeratorStack = verticalTouch &&
+	          horizontalOverlapRatio(upper.bbox, lower.bbox) >= 0.85 &&
+	          upperWidth <= lowerWidth * 0.45 &&
+	          upperWidth <= candidateWidth * 0.42;
+	        if (!numeratorStack && (!verticalTouch || !aligned || !local || !comparableWidths || !compactLocal)) continue;
+	        mergeRows(upper, lower);
+        rows.splice(i + 1, 1);
+        changed = true;
+        break;
+      }
+    }
+    return rows;
+  }
+
+  function rowCenterY(row) {
+    return row && row.bbox ? (row.bbox.yMin + row.bbox.yMax) / 2 : 0;
+  }
+
+  function hasCloserUpperNeighbor(childIndex, parentIndex, rows, gapToParent) {
+    if (rowCenterY(rows[childIndex]) >= rowCenterY(rows[parentIndex])) return false;
+    for (var i = 0; i < rows.length; i++) {
+      if (i === childIndex || i === parentIndex) continue;
+      if (rowCenterY(rows[i]) >= rowCenterY(rows[childIndex])) continue;
+      var neighborGap = verticalGap(rows[i].bbox, rows[childIndex].bbox);
+      if (neighborGap <= gapToParent * 1.2 + 8) return true;
+    }
+    return false;
   }
 
   function isStructuralAttachment(child, parent) {
@@ -441,7 +516,7 @@ var IdentifyLineDBNet = (function () {
     var childHeight = Math.max(1, child.bbox.yMax - child.bbox.yMin);
     var parentHeight = Math.max(1, parent.bbox.yMax - parent.bbox.yMin);
     var gap = verticalGap(child.bbox, parent.bbox);
-    var closeEnough = gap <= Math.max(28, parentMedian * 1.2, childMedian * 1.6);
+    var closeEnough = gap <= Math.max(26, parentMedian * 0.9, childMedian * 1.2);
     if (!closeEnough) return false;
 
     var childCenterY = (child.bbox.yMin + child.bbox.yMax) / 2;
@@ -458,18 +533,42 @@ var IdentifyLineDBNet = (function () {
     // fraction. Attach them as row decoration before final line assignment.
     var decoration = childCenterY > parentCenterY &&
       mostlyHorizontal(child) &&
-      (childMedian <= parentMedian * 0.55 || childHeight <= parentHeight * 0.45) &&
+      childMedian <= parentMedian * 0.55 &&
+      childHeight <= parentHeight * 0.45 &&
       gap <= Math.max(14, parentMedian * 0.55) &&
       horizontalOverlap >= 0.45;
-    if (decoration) return true;
+	    if (decoration) return true;
 
-    var sparse = child.strokes.length <= Math.max(2, Math.floor(parent.strokes.length * 0.45));
-    var compact = childWidth <= parentWidth * 0.55;
-    var physicallySmall = childMedian <= parentMedian * 0.75 || childHeight <= parentHeight * 0.55;
-    var scriptLike = localSupport && (
-      (sparse && (physicallySmall || childWidth <= parentWidth * 0.9)) ||
-      (compact && physicallySmall)
-    );
+	    var narrowerPairWidth = Math.min(childWidth, parentWidth);
+	    var widerPairWidth = Math.max(childWidth, parentWidth);
+	    var fractionPairWidthAsymmetry = narrowerPairWidth <= widerPairWidth * 0.62;
+	    if (localSupport &&
+	        fractionPairWidthAsymmetry &&
+	        containsFractionBridge(
+	          candidateFromStrokes(uniqueStrokes((child.strokes || []).concat(parent.strokes || []))),
+	          [child, parent]
+	        )) {
+	      return true;
+	    }
+
+		    var aboveAttachment = childCenterY < parentCenterY;
+	    var sparse = child.strokes.length <= Math.max(2, Math.floor(parent.strokes.length * 0.45));
+	    var verySparse = child.strokes.length <= Math.max(2, Math.floor(parent.strokes.length * 0.3));
+	    var compact = childWidth <= parentWidth * (aboveAttachment ? 0.55 : 0.35);
+	    var physicallySmall = childHeight <= parentHeight * 0.55 ||
+	      (childMedian <= parentMedian * 0.75 && childHeight <= parentHeight * 0.85);
+	    var lowerLimitLike = !aboveAttachment &&
+	      child.strokes.length <= 4 &&
+	      childWidth <= parentWidth * 0.32 &&
+	      rowHasTallOperatorStroke(parent, parentMedian);
+	    var numeratorLike = aboveAttachment &&
+	      child.strokes.length <= 4 &&
+	      childWidth <= parentWidth * 0.45 &&
+	      rowHasLocalHorizontalBridge(parent, child);
+	    var scriptLike = localSupport && (
+	      (aboveAttachment && (sparse || numeratorLike) && physicallySmall) ||
+	      (!aboveAttachment && (verySparse || lowerLimitLike) && compact && physicallySmall)
+	    );
     return scriptLike;
   }
 
@@ -478,6 +577,7 @@ var IdentifyLineDBNet = (function () {
       return row.strokes.length > 0;
     });
     rows.sort(function (a, b) { return a.bbox.yMin - b.bbox.yMin; });
+    rows = mergeTouchingLocalStacks(rows, candidate.tightBbox);
 
     var changed = true;
     while (changed) {
@@ -486,8 +586,9 @@ var IdentifyLineDBNet = (function () {
       for (var i = 0; i < rows.length; i++) {
         for (var j = 0; j < rows.length; j++) {
           if (i === j) continue;
-          if (!isStructuralAttachment(rows[i], rows[j])) continue;
           var gap = verticalGap(rows[i].bbox, rows[j].bbox);
+          if (hasCloserUpperNeighbor(i, j, rows, gap)) continue;
+          if (!isStructuralAttachment(rows[i], rows[j])) continue;
           if (!best || gap < best.gap) best = { child: i, parent: j, gap: gap };
         }
       }
@@ -502,13 +603,13 @@ var IdentifyLineDBNet = (function () {
   }
 
   function splitCandidate(candidate, detections) {
-    var rawBands = chooseLineBands(candidate, clusterDetections(detections));
-    if (rawBands.length <= 1) return [candidate];
-    if (containsFractionBridge(candidate, rawBands)) return [candidate];
+	    var rawBands = chooseLineBands(candidate, clusterDetections(detections));
+	    if (rawBands.length <= 1) return [candidate];
+	    if (rawBands.length <= 2 && containsFractionBridge(candidate, rawBands)) return [candidate];
 
-    var bands = mergeStructuralBands(candidate, rawBands);
-    if (bands.length <= 1) return [candidate];
-    if (containsFractionBridge(candidate, bands)) return [candidate];
+	    var bands = mergeStructuralBands(candidate, rawBands);
+	    if (bands.length <= 1) return [candidate];
+	    if (bands.length <= 2 && containsFractionBridge(candidate, bands)) return [candidate];
 
     var assigned = assignStrokesToBands(candidate, bands).map(function (row) { return row.strokes; });
 
@@ -544,7 +645,7 @@ var IdentifyLineDBNet = (function () {
    * centers and meaningful horizontal extent. This refinement is used only
    * when it finds more credible rows than DBNet.
    */
-  function clusterStrokeRows(candidate) {
+	  function clusterStrokeRows(candidate) {
     var strokes = (candidate.strokes || []).filter(function (stroke) {
       return stroke && stroke.canvasBbox;
     });
@@ -589,16 +690,78 @@ var IdentifyLineDBNet = (function () {
       var width = row.bbox.xMax - row.bbox.xMin;
       return row.strokes.length >= 3 ||
         (row.strokes.length >= 2 && width >= maxWidth * 0.28);
-    });
-  }
+	    });
+	  }
+	
+	  function bandsHaveAmbiguousOverlap(bands) {
+	    if (!bands || bands.length < 2) return false;
+	    var sorted = bands.slice().sort(function (a, b) { return a.bbox.yMin - b.bbox.yMin; });
+	    for (var i = 0; i < sorted.length - 1; i++) {
+	      var upper = sorted[i].bbox;
+	      var lower = sorted[i + 1].bbox;
+	      if (verticalOverlapRatio(upper, lower) >= 0.08) return true;
+	      if (verticalGap(upper, lower) <= 2) return true;
+	    }
+	    return false;
+	  }
 
-  function chooseLineBands(candidate, detectedBands) {
-    var strokeRows = clusterStrokeRows(candidate);
-    if (strokeRows.length > detectedBands.length && strokeRows.length > 1) {
-      return strokeRows;
-    }
-    return detectedBands;
-  }
+	  function strokeRowsInsideBand(strokeRows, band) {
+	    var rows = [];
+	    var box = band.bbox;
+	    for (var i = 0; i < strokeRows.length; i++) {
+	      var rowBox = strokeRows[i].bbox;
+	      var center = (rowBox.yMin + rowBox.yMax) / 2;
+	      if (verticalOverlapRatio(rowBox, box) >= 0.15 ||
+	          (center >= box.yMin && center <= box.yMax)) {
+	        rows.push(strokeRows[i]);
+	      }
+	    }
+	    return rows;
+	  }
+
+	  function detectedBandsOnlyExpandStructuralFractions(detectedBands, strokeRows) {
+	    if (!detectedBands || detectedBands.length <= 1) return false;
+	    if (!strokeRows || strokeRows.length <= detectedBands.length) return false;
+	    if (bandsHaveAmbiguousOverlap(detectedBands)) return false;
+
+	    var foundStructuralExpansion = false;
+	    for (var i = 0; i < detectedBands.length; i++) {
+	      var containedRows = strokeRowsInsideBand(strokeRows, detectedBands[i]);
+	      if (containedRows.length <= 1) continue;
+
+	      var containedStrokes = [];
+	      for (var r = 0; r < containedRows.length; r++) {
+	        containedStrokes = containedStrokes.concat(containedRows[r].strokes || []);
+	      }
+	      containedStrokes = uniqueStrokes(containedStrokes);
+	      if (!containsFractionBridge(candidateFromStrokes(containedStrokes), containedRows)) {
+	        return false;
+	      }
+	      foundStructuralExpansion = true;
+	    }
+	    return foundStructuralExpansion;
+	  }
+		
+	  function chooseLineBands(candidate, detectedBands) {
+	    var strokeRows = clusterStrokeRows(candidate);
+	    if (strokeRows.length > detectedBands.length && strokeRows.length > 1) {
+	      if (detectedBandsOnlyExpandStructuralFractions(detectedBands, strokeRows)) {
+	        return detectedBands;
+	      }
+	      return strokeRows;
+	    }
+	    if (strokeRows.length === detectedBands.length &&
+	        strokeRows.length > 1 &&
+	        bandsHaveAmbiguousOverlap(detectedBands)) {
+	      return strokeRows;
+	    }
+	    if (strokeRows.length > 1 &&
+	        detectedBands.length > strokeRows.length &&
+	        bandsHaveAmbiguousOverlap(detectedBands)) {
+	      return strokeRows;
+	    }
+	    return detectedBands;
+	  }
 
   /**
    * Fractions are vertically arranged but must remain one CoMER crop. Treat a
@@ -644,18 +807,21 @@ var IdentifyLineDBNet = (function () {
       if (Math.max(aboveGap, belowGap) / Math.min(aboveGap, belowGap) > 3.25) continue;
       if (belowGap > Math.max(32, aboveGap * 3 + 8)) continue;
 
-      var bandAbove = false, bandBelow = false;
-      for (var b = 0; b < bands.length; b++) {
-        var band = bands[b].bbox;
-        if (horizontalOverlapRatio(bar, band) < 0.2) continue;
-        var bandY = (band.yMin + band.yMax) / 2;
-        if (bandY < barY) bandAbove = true;
-        if (bandY > barY) bandBelow = true;
-      }
-      if (bandAbove && bandBelow) return true;
-    }
-    return false;
-  }
+	      var bandAbove = false, bandBelow = false;
+	      var hasDistantBand = false;
+	      var distantThreshold = Math.max(36, height * 8);
+	      for (var b = 0; b < bands.length; b++) {
+	        var band = bands[b].bbox;
+	        if (horizontalOverlapRatio(bar, band) < 0.2) continue;
+	        var bandY = (band.yMin + band.yMax) / 2;
+	        if (bandY < barY) bandAbove = true;
+	        if (bandY > barY) bandBelow = true;
+	        if (verticalGap(bar, band) > distantThreshold) hasDistantBand = true;
+	      }
+	      if (bandAbove && bandBelow && !hasDistantBand) return true;
+	    }
+	    return false;
+	  }
 
   function candidateAlternatives(candidate, detections) {
     var split = splitCandidate(candidate, detections);
@@ -742,6 +908,7 @@ var IdentifyLineDBNet = (function () {
       var body = new FormData();
       body.append("file", blob, "candidate.png");
       var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      if (controller) _activeDetectionControllers.push(controller);
       var timer = controller ? setTimeout(function () { controller.abort(); }, _config.requestTimeoutMs) : null;
       return fetch(_serverUrl + "/segment-lines", {
         method: "POST",
@@ -750,7 +917,13 @@ var IdentifyLineDBNet = (function () {
       }).then(function (response) {
         if (!response.ok) throw new Error("DBNet endpoint returned " + response.status);
         return response.json();
-      }).finally(function () { if (timer) clearTimeout(timer); });
+      }).finally(function () {
+        if (timer) clearTimeout(timer);
+        if (controller) {
+          var index = _activeDetectionControllers.indexOf(controller);
+          if (index !== -1) _activeDetectionControllers.splice(index, 1);
+        }
+      });
     }).then(function (payload) {
       return (payload.detections || []).map(function (item) {
         var box = item.bbox;
@@ -783,16 +956,33 @@ var IdentifyLineDBNet = (function () {
       return requestDetections(candidate).then(function (detections) {
         _resultCache[key] = detections;
       }).catch(function (error) {
+        if (error && error.name === "AbortError") return;
         // Preserve the unsplit candidate on model/network failure.
         console.warn("DBNet segmentation fallback:", error.message || error);
         _resultCache[key] = [];
       });
     });
-    _activeFlush = Promise.all(requests).then(function () {
+    var flushPromise = Promise.all(requests).then(function () {
       if (version === _version && signature === documentSignature()) groupStrokesIntoLines();
       return _lineGroups;
-    }).finally(function () { _activeFlush = null; });
+    }).finally(function () {
+      if (_activeFlush === flushPromise) _activeFlush = null;
+    });
+    _activeFlush = flushPromise;
     return _activeFlush;
+  }
+
+  function cancelPendingFlush() {
+    _version += 1;
+    for (var i = 0; i < _activeDetectionControllers.length; i++) {
+      try {
+        _activeDetectionControllers[i].abort();
+      } catch (error) {
+        // Ignore controller state races; the next idle pass will rebuild groups.
+      }
+    }
+    _activeDetectionControllers = [];
+    _activeFlush = null;
   }
 
   function finalizeStroke() {
@@ -877,6 +1067,7 @@ var IdentifyLineDBNet = (function () {
     setActive: setActive,
     groupStrokesIntoLines: groupStrokesIntoLines,
     flushPendingGroups: flushPendingGroups,
+    cancelPendingFlush: cancelPendingFlush,
     finalizeStroke: finalizeStroke,
     getLineGroups: getLineGroups,
     getLineCandidates: getLineCandidates,

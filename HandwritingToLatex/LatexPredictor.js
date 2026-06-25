@@ -134,7 +134,7 @@ var LatexPredictor = (function () {
     }
 
     // Get rasterized lines (re-rasterize fresh)
-    var lines = LinesRasterizer.rasterizeAllLines();
+    var lines = filterLinesForRecognition(LinesRasterizer.rasterizeAllLines());
     if (!lines || lines.length === 0) {
       showToast("No handwriting detected. Draw something first!", false);
       return;
@@ -188,10 +188,17 @@ var LatexPredictor = (function () {
     var nextIdx = 0;
     var total = lines.length;
     var results = new Array(total);
+    function shouldContinueWork() {
+      return typeof options.shouldContinue !== "function" || options.shouldContinue();
+    }
 
     function worker() {
       return new Promise(function (resolve, reject) {
         function step() {
+          if (!shouldContinueWork()) {
+            resolve();
+            return;
+          }
           var i = nextIdx++;
           if (i >= total) {
             resolve();
@@ -208,9 +215,17 @@ var LatexPredictor = (function () {
           lineOptions.pendingTotal = total;
           sendLineToServers(lines[i], lineIndex, lineOptions).then(function (predictions) {
             results[i] = predictions;
+            if (!shouldContinueWork()) {
+              resolve();
+              return;
+            }
             step();
           }).catch(function (err) {
             console.error("Line " + i + " failed, continuing:", err);
+            if (!shouldContinueWork()) {
+              resolve();
+              return;
+            }
             step();
           });
         }
@@ -308,6 +323,48 @@ var LatexPredictor = (function () {
       if (!ids[contained.strokeIds[j]]) return false;
     }
     return true;
+  }
+
+  function hasProfile(lineData, profile) {
+    var profiles = lineData && lineData.profiles ? lineData.profiles : [];
+    return profiles.indexOf(profile) !== -1;
+  }
+
+  function childLinesCoverParent(parent, children) {
+    if (!parent || !parent.strokeIds || children.length <= 1) return false;
+    var parentIds = {};
+    var parentCount = 0;
+    for (var i = 0; i < parent.strokeIds.length; i++) {
+      var id = String(parent.strokeIds[i]);
+      if (!parentIds[id]) {
+        parentIds[id] = true;
+        parentCount += 1;
+      }
+    }
+    var covered = {};
+    var coveredCount = 0;
+    for (var c = 0; c < children.length; c++) {
+      if (!strokeSetContains(parent, children[c])) continue;
+      for (var s = 0; s < children[c].strokeIds.length; s++) {
+        var childId = String(children[c].strokeIds[s]);
+        if (parentIds[childId] && !covered[childId]) {
+          covered[childId] = true;
+          coveredCount += 1;
+        }
+      }
+    }
+    return coveredCount === parentCount;
+  }
+
+  function filterLinesForRecognition(lines) {
+    var input = lines || [];
+    return input.filter(function (line) {
+      if (!hasProfile(line, "dbnet-parent")) return true;
+      var children = input.filter(function (candidate) {
+        return hasProfile(candidate, "dbnet-line") && strokeSetContains(line, candidate);
+      });
+      return !childLinesCoverParent(line, children);
+    });
   }
 
   /**
@@ -555,6 +612,7 @@ var LatexPredictor = (function () {
 
   function recognizeCandidateLines(lines, options) {
     options = options || {};
+    lines = filterLinesForRecognition(lines || []);
     if (!lines || lines.length === 0) return Promise.resolve([]);
     var models = normalizeModels(options.models);
     var entries = new Array(lines.length);
@@ -574,7 +632,9 @@ var LatexPredictor = (function () {
     return processWithConcurrency(pendingLines, options.concurrency || 1, {
       models: models,
       deferRender: true,
-      shouldRender: options.shouldRender
+      shouldRender: options.shouldRender,
+      shouldContinue: options.shouldContinue,
+      abortSignal: options.abortSignal
     }).then(function (results) {
       for (var r = 0; r < results.length; r++) {
         var originalIndex = pendingIndexes[r];
@@ -590,6 +650,7 @@ var LatexPredictor = (function () {
           delete _candidatePredictionCache[cacheKeys[c]];
         }
       }
+      if (typeof options.shouldContinue === "function" && !options.shouldContinue()) return [];
       if (typeof options.shouldRender === "function" && !options.shouldRender()) return [];
       var selected = selectCandidateCover(entries);
       return renderCandidateResults(entries, selected, options);
@@ -660,6 +721,9 @@ var LatexPredictor = (function () {
       if (!renderOptions.deferRender) renderRow(lineIndex, emptyPredictions(), renderOptions);
       return Promise.resolve(emptyPredictions());
     }
+    if (typeof renderOptions.shouldContinue === "function" && !renderOptions.shouldContinue()) {
+      return Promise.resolve(emptyPredictions());
+    }
 
     if (renderOptions.renderPending !== false) {
       renderPendingRow(lineIndex, "CoMER is reading this crop...", lineData, renderOptions);
@@ -668,13 +732,16 @@ var LatexPredictor = (function () {
     return fetch(dataUrl)
       .then(function (resp) { return resp.blob(); })
       .then(function (blob) {
+        if (typeof renderOptions.shouldContinue === "function" && !renderOptions.shouldContinue()) {
+          return emptyPredictions();
+        }
         if (!blob || blob.size === 0) {
           throw new Error("Rasterized image is empty (0 bytes)");
         }
 
         var modelPromises = [];
         for (var m = 0; m < models.length; m++) {
-          modelPromises.push(sendToModel(models[m], blob, lineIndex));
+          modelPromises.push(sendToModel(models[m], blob, lineIndex, renderOptions));
         }
 
         return Promise.all(modelPromises).then(function (results) {
@@ -796,8 +863,20 @@ var LatexPredictor = (function () {
    * or null on failure / model not loaded.
    */
   function sendToModel(modelName, blob, lineIndex) {
+    var options = arguments.length > 3 ? arguments[3] || {} : {};
     if (!isServerOnline(modelName)) {
       return Promise.resolve(null);
+    }
+    if (typeof options.shouldContinue === "function" && !options.shouldContinue()) {
+      return Promise.resolve({
+        latex: "",
+        candidates: [],
+        confidence: 0,
+        model: modelName,
+        aborted: true,
+        elapsedSeconds: 0,
+        selectionPenalty: -1000
+      });
     }
 
     var formData = new FormData();
@@ -809,6 +888,16 @@ var LatexPredictor = (function () {
     var abortTimer = controller ? setTimeout(function () {
       controller.abort();
     }, _recognitionTimeoutMs + 750) : null;
+    var externalSignal = options.abortSignal || null;
+    var abortFromExternal = null;
+    if (controller && externalSignal) {
+      abortFromExternal = function () { controller.abort(); };
+      if (externalSignal.aborted) {
+        controller.abort();
+      } else if (externalSignal.addEventListener) {
+        externalSignal.addEventListener("abort", abortFromExternal, { once: true });
+      }
+    }
     var timeoutSeconds = _recognitionTimeoutMs / 1000;
     var requestUrl = _serverUrl + "/recognize?model=" + modelName +
       "&timeout_seconds=" + encodeURIComponent(timeoutSeconds);
@@ -892,7 +981,10 @@ var LatexPredictor = (function () {
       })
       .catch(function (err) {
         if (err && err.name === "AbortError") {
-          return timeoutResult((Date.now() - startedAt) / 1000);
+          var result = timeoutResult((Date.now() - startedAt) / 1000);
+          result.aborted = true;
+          result.timedOut = false;
+          return result;
         }
         console.error(modelName + " recognition failed:", err);
         return {
@@ -908,6 +1000,9 @@ var LatexPredictor = (function () {
       })
       .finally(function () {
         if (abortTimer) clearTimeout(abortTimer);
+        if (externalSignal && abortFromExternal && externalSignal.removeEventListener) {
+          externalSignal.removeEventListener("abort", abortFromExternal);
+        }
       });
   }
 
@@ -1242,6 +1337,7 @@ var LatexPredictor = (function () {
     recognize: recognize,
     recognizeLines: recognizeLines,
     recognizeCandidateLines: recognizeCandidateLines,
+    filterLinesForRecognition: filterLinesForRecognition,
     selectCandidateCover: selectCandidateCover,
     scoreLineCandidate: scoreLineCandidate,
     sendLineToServers: sendLineToServers,

@@ -116,15 +116,39 @@ for (const candidate of baseCandidates) {
 }
 
 const bands = identify.clusterDetections(dbnet.detections || []);
+const strokeRows = baseCandidates.length
+  ? identify.clusterStrokeRows(baseCandidates[0])
+  : [];
+const chosenBands = baseCandidates.length
+  ? identify.chooseLineBands(baseCandidates[0], bands)
+  : [];
+const mergedBands = baseCandidates.length
+  ? identify.mergeStructuralBands(baseCandidates[0], chosenBands)
+  : [];
 const output = {
   order,
   expectedLines: board.lines.length,
   rawDetections: (dbnet.detections || []).length,
   dbnetBands: bands.length,
+  dbnetBandBboxes: bands.map((band) => band.bbox),
+  strokeRowBboxes: strokeRows.map((row) => row.bbox),
+  strokeRowLineSets: strokeRows.map((row) => {
+    return Array.from(new Set(row.strokes.map((stroke) => stroke.syntheticLineIndex))).sort();
+  }),
+  chosenBandBboxes: chosenBands.map((band) => band.bbox),
+  mergedBandBboxes: mergedBands.map((band) => band.bbox),
   baseCandidates: baseCandidates.length,
   splitCandidates: splits.length,
   splitStrokeCounts: splits.map((line) => line.strokes.length),
   splitBboxes: splits.map((line) => line.tightBbox),
+  splitContours: splits.map((line) => {
+    return line.strokes.map((stroke) => stroke.rawPoints || stroke.outlinePoints || []);
+  }),
+  splitSyntheticLatex: splits.map((line) => {
+    const indexes = Array.from(new Set(line.strokes.map((stroke) => stroke.syntheticLineIndex))).sort();
+    if (indexes.length !== 1) return indexes.map((index) => board.lines[index] && board.lines[index].latex);
+    return board.lines[indexes[0]] ? board.lines[indexes[0]].latex : null;
+  }),
   splitSyntheticLineSets: splits.map((line) => {
     return Array.from(new Set(line.strokes.map((stroke) => stroke.syntheticLineIndex))).sort();
   })

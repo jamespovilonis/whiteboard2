@@ -83,6 +83,10 @@ separate line.
 The refinement deliberately remains geometric rather than symbol-name based.
 Full-width or baseline-sized rows still split as algebra work even when they
 are close together, while small local rows stay with the expression they modify.
+Lower attachments use a stricter width threshold than upper attachments, so
+rows such as `-3  -3` are not mistaken for subscripts. Upper attachments are
+also neighbor-aware: a band that is closer to the work row above it will not be
+pulled down as a superscript on the next row.
 
 For a genuine multi-line candidate, the application retains both:
 
@@ -162,6 +166,10 @@ child catchment instead of the original parent box.
 - Dense multi-line algebra still relies on full-width/baseline-sized row
   evidence, so the script and underline protections do not suppress ordinary
   `line -> operation -> next line` splitting.
+- Very close local stacks, such as DBNet separating a fraction into touching
+  numerator/denominator bands inside a larger board, are merged only when both
+  touching bands are narrow relative to the whole candidate. This preserves
+  fractions without merging adjacent full-width work rows.
 
 The remaining hard cases are inherently ambiguous geometry: a very wide,
 multi-stroke superscript row may look like a real algebra row, and a very dense

@@ -1,0 +1,407 @@
+[
+  {
+    "name": "derivative_evaluate",
+    "family": "derivative",
+    "spacing": "tight-steps",
+    "expectedLineCount": 4,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/derivative-evaluate_tight-steps.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/derivative-evaluate_tight-steps.json",
+    "rawDetections": 4,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 4,
+        "rawDetections": 4,
+        "dbnetBands": 4,
+        "dbnetBandBboxes": [
+          {
+            "xMin": 111,
+            "yMin": 50,
+            "xMax": 639,
+            "yMax": 152
+          },
+          {
+            "xMin": 147,
+            "yMin": 148,
+            "xMax": 714,
+            "yMax": 257
+          },
+          {
+            "xMin": 136,
+            "yMin": 244,
+            "xMax": 797,
+            "yMax": 366
+          },
+          {
+            "xMin": 201,
+            "yMin": 350,
+            "xMax": 693,
+            "yMax": 447
+          }
+        ],
+        "strokeRowBboxes": [
+          {
+            "xMin": 118,
+            "yMin": 65,
+            "xMax": 628,
+            "yMax": 146
+          },
+          {
+            "xMin": 160,
+            "yMin": 160,
+            "xMax": 703,
+            "yMax": 244
+          },
+          {
+            "xMin": 144,
+            "yMin": 260,
+            "xMax": 783,
+            "yMax": 353
+          },
+          {
+            "xMin": 217,
+            "yMin": 362,
+            "xMax": 677,
+            "yMax": 442
+          }
+        ],
+        "strokeRowLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "chosenBandBboxes": [
+          {
+            "xMin": 118,
+            "yMin": 65,
+            "xMax": 628,
+            "yMax": 146
+          },
+          {
+            "xMin": 160,
+            "yMin": 160,
+            "xMax": 703,
+            "yMax": 244
+          },
+          {
+            "xMin": 144,
+            "yMin": 260,
+            "xMax": 783,
+            "yMax": 353
+          },
+          {
+            "xMin": 217,
+            "yMin": 362,
+            "xMax": 677,
+            "yMax": 442
+          }
+        ],
+        "mergedBandBboxes": [
+          {
+            "xMin": 118,
+            "yMin": 65,
+            "xMax": 628,
+            "yMax": 146
+          },
+          {
+            "xMin": 160,
+            "yMin": 160,
+            "xMax": 703,
+            "yMax": 244
+          },
+          {
+            "xMin": 144,
+            "yMin": 260,
+            "xMax": 783,
+            "yMax": 353
+          },
+          {
+            "xMin": 217,
+            "yMin": 362,
+            "xMax": 677,
+            "yMax": 442
+          }
+        ],
+        "baseCandidates": 1,
+        "splitCandidates": 4,
+        "splitStrokeCounts": [
+          12,
+          13,
+          17,
+          9
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 118,
+            "yMin": 65,
+            "xMax": 628,
+            "yMax": 146
+          },
+          {
+            "xMin": 160,
+            "yMin": 160,
+            "xMax": 703,
+            "yMax": 244
+          },
+          {
+            "xMin": 144,
+            "yMin": 260,
+            "xMax": 783,
+            "yMax": 353
+          },
+          {
+            "xMin": 217,
+            "yMin": 362,
+            "xMax": 677,
+            "yMax": 442
+          }
+        ],
+        "splitSyntheticLatex": [
+          "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+          "f ' ( x ) = 3 x ^ { 2 } + 4 x",
+          "f ' ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+          "f ' ( 2 ) = 20"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_tight-steps_line-order_line_1.png",
+            "predictedLatex": "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+            "httpStatus": 200,
+            "elapsedSeconds": 5.921,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "strictMatch": true,
+              "looseMatch": true,
+              "reason": "canonical-exact",
+              "canonicalPredicted": "f(x)=x^{3}+2x^{2}",
+              "canonicalExpected": "f(x)=x^{3}+2x^{2}",
+              "loose": {
+                "match": true,
+                "reason": "key-token coverage",
+                "matchedTokens": 7,
+                "expectedTokens": 7,
+                "missingTokens": []
+              }
+            },
+            "topCandidates": [
+              {
+                "latex": "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+                "score": -0.0114,
+                "confidence": 0.49212512088086385
+              },
+              {
+                "latex": "g ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+                "score": -1.1883,
+                "confidence": 0.15168909445749876
+              },
+              {
+                "latex": "\\int ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+                "score": -1.3578,
+                "confidence": 0.1280387554306953
+              },
+              {
+                "latex": "f ( x ) = x ^ { 3 } = x ^ { 3 } + 2 x ^ { 2 }",
+                "score": -1.3842,
+                "confidence": 0.12470276116394244
+              },
+              {
+                "latex": "f ( x ) = x ^ { 2 } = x ^ { 3 } + 2 x ^ { 2 }",
+                "score": -1.5711,
+                "confidence": 0.10344426806699966
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "f ' ( x ) = 3 x ^ { 2 } + 4 x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_tight-steps_line-order_line_2.png",
+            "predictedLatex": "f ^ { \\prime } ( x ) = 3 x ^ { 2 } + 4 x",
+            "httpStatus": 200,
+            "elapsedSeconds": 5.003,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "strictMatch": true,
+              "looseMatch": true,
+              "reason": "canonical-exact",
+              "canonicalPredicted": "f'(x)=3x^{2}+4x",
+              "canonicalExpected": "f'(x)=3x^{2}+4x",
+              "loose": {
+                "match": true,
+                "reason": "key-token coverage",
+                "matchedTokens": 8,
+                "expectedTokens": 8,
+                "missingTokens": []
+              }
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { \\prime } ( x ) = 3 x ^ { 2 } + 4 x",
+                "score": -0.0376,
+                "confidence": 0.2918880996459876
+              },
+              {
+                "latex": "f ^ { p } ( x ) = 3 x ^ { 2 } + 4 x",
+                "score": -0.4122,
+                "confidence": 0.20069182216902057
+              },
+              {
+                "latex": "f ^ { f } ( x ) = 3 x ^ { 2 } + 4 x",
+                "score": -0.4562,
+                "confidence": 0.19205283345712118
+              },
+              {
+                "latex": "f ^ { 2 } ( x ) = 3 x ^ { 2 } + 4 x",
+                "score": -0.5862,
+                "confidence": 0.16864071555404558
+              },
+              {
+                "latex": "f ^ { p \\prime } ( x ) = 3 x ^ { 2 } + 4 x",
+                "score": -0.7254,
+                "confidence": 0.1467265291738249
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "f ' ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_tight-steps_line-order_line_3.png",
+            "predictedLatex": "f ^ { \\prime } ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+            "httpStatus": 200,
+            "elapsedSeconds": 9.169,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "strictMatch": true,
+              "looseMatch": true,
+              "reason": "canonical-exact",
+              "canonicalPredicted": "f'(2)=3(2)^{2}+4(2)",
+              "canonicalExpected": "f'(2)=3(2)^{2}+4(2)",
+              "loose": {
+                "match": true,
+                "reason": "key-token coverage",
+                "matchedTokens": 7,
+                "expectedTokens": 7,
+                "missingTokens": []
+              }
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { \\prime } ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+                "score": -0.4957,
+                "confidence": 0.25752432914801227
+              },
+              {
+                "latex": "\\int \\limits _ { 0 } ^ { 1 } ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+                "score": -0.5858,
+                "confidence": 0.23533598059964167
+              },
+              {
+                "latex": "f ^ { 1 } ( 2 ) \\cdot ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+                "score": -0.7995,
+                "confidence": 0.1900551318627829
+              },
+              {
+                "latex": "f ^ { 0 } ( 2 ) \\cdot ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+                "score": -0.9391,
+                "confidence": 0.16529209768218428
+              },
+              {
+                "latex": "f ^ { 1 } ( 2 ) \\div ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+                "score": -1.0243,
+                "confidence": 0.15179246070737884
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "f ' ( 2 ) = 20",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_tight-steps_line-order_line_4.png",
+            "predictedLatex": "f ( 2 ^ { j } ) = 2 0",
+            "httpStatus": 200,
+            "elapsedSeconds": 1.847,
+            "timedOut": false,
+            "match": false,
+            "comparison": {
+              "match": false,
+              "strictMatch": false,
+              "looseMatch": true,
+              "reason": "canonical-mismatch",
+              "canonicalPredicted": "f(2^{j})=20",
+              "canonicalExpected": "f'(2)=20",
+              "loose": {
+                "match": true,
+                "reason": "key-token coverage",
+                "matchedTokens": 3,
+                "expectedTokens": 4,
+                "missingTokens": [
+                  "20"
+                ]
+              }
+            },
+            "topCandidates": [
+              {
+                "latex": "f ( 2 ^ { j } ) = 2 0",
+                "score": -0.4798,
+                "confidence": 0.2374222289489909
+              },
+              {
+                "latex": "f ( 2 ^ { i } ) = 2 0",
+                "score": -0.6247,
+                "confidence": 0.20539605949992346
+              },
+              {
+                "latex": "f \\cdot ( 2 j ) = 2 0",
+                "score": -0.6625,
+                "confidence": 0.1977769959325454
+              },
+              {
+                "latex": "f \\div ( 2 j ) = 2 0",
+                "score": -0.7075,
+                "confidence": 0.18907431007602865
+              },
+              {
+                "latex": "f \\div ( 2 ^ { j } ) = 2 0",
+                "score": -0.8119,
+                "confidence": 0.17033040554251153
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

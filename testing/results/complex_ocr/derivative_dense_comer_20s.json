@@ -1,0 +1,253 @@
+[
+  {
+    "name": "derivative_evaluate",
+    "family": "derivative",
+    "spacing": "dense",
+    "expectedLineCount": 4,
+    "png": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/derivative-evaluate_dense.png",
+    "boardJson": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/derivative-evaluate_dense.json",
+    "rawDetections": 4,
+    "orders": [
+      {
+        "order": "line-order",
+        "expectedLines": 4,
+        "rawDetections": 4,
+        "dbnetBands": 4,
+        "baseCandidates": 1,
+        "splitCandidates": 4,
+        "splitStrokeCounts": [
+          13,
+          13,
+          17,
+          9
+        ],
+        "splitBboxes": [
+          {
+            "xMin": 118,
+            "yMin": 62,
+            "xMax": 698,
+            "yMax": 146
+          },
+          {
+            "xMin": 161,
+            "yMin": 178,
+            "xMax": 751,
+            "yMax": 262
+          },
+          {
+            "xMin": 145,
+            "yMin": 300,
+            "xMax": 840,
+            "yMax": 387
+          },
+          {
+            "xMin": 217,
+            "yMin": 414,
+            "xMax": 677,
+            "yMax": 494
+          }
+        ],
+        "splitSyntheticLatex": [
+          "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+          "f ' ( x ) = 3 x ^ { 2 } + 4 x",
+          "f ' ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+          "f ' ( 2 ) = 20"
+        ],
+        "splitSyntheticLineSets": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            2
+          ],
+          [
+            3
+          ]
+        ],
+        "comerRecognitions": [
+          {
+            "lineIndex": 0,
+            "sourceLineIndex": 0,
+            "expectedLatex": "f ( x ) = x ^ { 3 } + 2 x ^ { 2 }",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_dense_line-order_line_1.png",
+            "predictedLatex": "f ^ { 0 } ( x ) = x 3 + 2 x 2",
+            "elapsedSeconds": 3.127,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 7,
+              "expectedTokens": 7,
+              "missingTokens": []
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { 0 } ( x ) = x 3 + 2 x 2",
+                "score": -0.2413,
+                "confidence": 0.23447292359885913
+              },
+              {
+                "latex": "f ^ { 0 } ( x ) = x z + 2 x 2",
+                "score": -0.3549,
+                "confidence": 0.2092940323917565
+              },
+              {
+                "latex": "f ^ { 0 } ( x ) = x _ { 3 } + 2 x 2",
+                "score": -0.4542,
+                "confidence": 0.18950968223821776
+              },
+              {
+                "latex": "f ^ { 2 } ( x ) = x 3 + 2 x 2",
+                "score": -0.4664,
+                "confidence": 0.18721171024650288
+              },
+              {
+                "latex": "f ^ { 0 } ( x ) = x _ { 0 } + 2 x 2",
+                "score": -0.5084,
+                "confidence": 0.17951165152466378
+              }
+            ]
+          },
+          {
+            "lineIndex": 1,
+            "sourceLineIndex": 1,
+            "expectedLatex": "f ' ( x ) = 3 x ^ { 2 } + 4 x",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_dense_line-order_line_2.png",
+            "predictedLatex": "f ^ { \\prime } ( x ) = 3 x 2 + 4 x",
+            "elapsedSeconds": 2.049,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 8,
+              "expectedTokens": 8,
+              "missingTokens": []
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { \\prime } ( x ) = 3 x 2 + 4 x",
+                "score": -0.1021,
+                "confidence": 0.26067667593860616
+              },
+              {
+                "latex": "f ^ { p } ( x ) = 3 x 2 + 4 x",
+                "score": -0.265,
+                "confidence": 0.22149075487071562
+              },
+              {
+                "latex": "f ^ { f } ( x ) = 3 x 2 + 4 x",
+                "score": -0.4064,
+                "confidence": 0.19228542369070326
+              },
+              {
+                "latex": "f ^ { 2 } ( x ) = 3 x 2 + 4 x",
+                "score": -0.5654,
+                "confidence": 0.16401876629100667
+              },
+              {
+                "latex": "f ^ { 8 } ( x ) = 3 x 2 + 4 x",
+                "score": -0.5807,
+                "confidence": 0.16152837920896834
+              }
+            ]
+          },
+          {
+            "lineIndex": 2,
+            "sourceLineIndex": 2,
+            "expectedLatex": "f ' ( 2 ) = 3 ( 2 ) ^ { 2 } + 4 ( 2 )",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_dense_line-order_line_3.png",
+            "predictedLatex": "f ^ { \\prime } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+            "elapsedSeconds": 2.232,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 7,
+              "expectedTokens": 7,
+              "missingTokens": []
+            },
+            "topCandidates": [
+              {
+                "latex": "f ^ { \\prime } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.0764,
+                "confidence": 0.26500264751595637
+              },
+              {
+                "latex": "f ^ { p } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.3745,
+                "confidence": 0.19669215008929916
+              },
+              {
+                "latex": "f ^ { 2 } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.4048,
+                "confidence": 0.19082176342134868
+              },
+              {
+                "latex": "f ^ { 1 } ( 2 ) = 3 ( 2 ) 2 + 4 ( 2 )",
+                "score": -0.486,
+                "confidence": 0.17593943501147763
+              },
+              {
+                "latex": "f ^ { \\prime } ( 2 ) = 3 ( 2 ) z + 4 ( 2 )",
+                "score": -0.5113,
+                "confidence": 0.17154400396191802
+              }
+            ]
+          },
+          {
+            "lineIndex": 3,
+            "sourceLineIndex": 3,
+            "expectedLatex": "f ' ( 2 ) = 20",
+            "crop": "/Users/jpovj/Documents/dev/whiteboard_2/testing/results/complex_ocr/crops/derivative-evaluate_dense_line-order_line_4.png",
+            "predictedLatex": "f + ( 2 ) = 2 0",
+            "elapsedSeconds": 1.893,
+            "timedOut": false,
+            "match": true,
+            "comparison": {
+              "match": true,
+              "reason": "key-token coverage",
+              "matchedTokens": 3,
+              "expectedTokens": 4,
+              "missingTokens": [
+                "20"
+              ]
+            },
+            "topCandidates": [
+              {
+                "latex": "f + ( 2 ) = 2 0",
+                "score": -0.3855,
+                "confidence": 0.24926764576802654
+              },
+              {
+                "latex": "f ( 2 ) = 2 0",
+                "score": -0.4958,
+                "confidence": 0.22323548521183634
+              },
+              {
+                "latex": "f \\cdot ( 2 ) = 2 0",
+                "score": -0.687,
+                "confidence": 0.18438522843160518
+              },
+              {
+                "latex": "f o ( 2 ) = 2 0",
+                "score": -0.7337,
+                "confidence": 0.17597240655241556
+              },
+              {
+                "latex": "f \\div ( 2 ) = 2 0",
+                "score": -0.7852,
+                "confidence": 0.16713923403611636
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

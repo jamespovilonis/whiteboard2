@@ -1,7 +1,7 @@
 {
   "apiUrl": "",
   "recognitionModels": ["comer"],
-  "recognitionTimeoutMs": 10000,
+  "recognitionTimeoutMs": 20000,
   "lineDetection": {
     "mode": "dbnet",
     "idleDelayMs": 1000,

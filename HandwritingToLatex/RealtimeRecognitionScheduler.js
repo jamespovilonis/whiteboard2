@@ -22,6 +22,7 @@ var RealtimeRecognitionScheduler = (function () {
   var _lastRecognizedSignatureByLine = {};
   var _running = false;
   var _rerunRequested = false;
+  var _activeAbortController = null;
 
   function configure(opts) {
     if (!opts) return getConfig();
@@ -57,6 +58,16 @@ var RealtimeRecognitionScheduler = (function () {
 
   function notifyStrokeChange(reason) {
     _documentVersion += 1;
+    if (typeof IdentifyLine !== "undefined" && IdentifyLine.cancelPendingFlush) {
+      IdentifyLine.cancelPendingFlush();
+    }
+    if (_activeAbortController) {
+      try {
+        _activeAbortController.abort();
+      } catch (error) {
+        // Ignore controller state races; the queued rerun below owns recovery.
+      }
+    }
     if (!_config.enabled) return;
 
     clearTimeout(_timer);
@@ -133,12 +144,17 @@ var RealtimeRecognitionScheduler = (function () {
     }
 
     var lines = LinesRasterizer.rasterizeAllLines();
+    if (LatexPredictor.filterLinesForRecognition) {
+      lines = LatexPredictor.filterLinesForRecognition(lines);
+    }
     var changed = getChangedLines(lines || []);
     if (changed.length === 0) {
       return Promise.resolve({ skipped: true, reason: "unchanged" });
     }
 
     var runVersion = _documentVersion;
+    var runAbortController = typeof AbortController !== "undefined" ? new AbortController() : null;
+    _activeAbortController = runAbortController;
     _running = true;
     _lastRunStartedAt = Date.now();
 
@@ -150,6 +166,11 @@ var RealtimeRecognitionScheduler = (function () {
       replaceExisting: true,
       activatePanel: true,
       stage: "realtime",
+      abortSignal: runAbortController ? runAbortController.signal : null,
+      shouldContinue: function () {
+        return runVersion === _documentVersion &&
+          (!runAbortController || !runAbortController.signal.aborted);
+      },
       shouldRender: function () {
         return runVersion === _documentVersion;
       }
@@ -165,6 +186,9 @@ var RealtimeRecognitionScheduler = (function () {
         result: result
       };
     }).finally(function () {
+      if (_activeAbortController === runAbortController) {
+        _activeAbortController = null;
+      }
       _running = false;
       if (_rerunRequested || runVersion !== _documentVersion) {
         _rerunRequested = false;

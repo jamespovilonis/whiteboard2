@@ -9,7 +9,7 @@ TESTING_DIR = Path(__file__).resolve().parent
 if str(TESTING_DIR) not in sys.path:
     sys.path.insert(0, str(TESTING_DIR))
 
-from synthetic_handwriting import place_handwriting_lines, render_handwriting
+from synthetic_handwriting import normalize_latex, place_handwriting_lines, render_handwriting
 
 
 class SyntheticHandwritingTests(unittest.TestCase):
@@ -25,6 +25,12 @@ class SyntheticHandwritingTests(unittest.TestCase):
         self.assertGreater(fixture.width, 100)
         self.assertGreater(fixture.height, 40)
         self.assertGreater(len(fixture.contours), 5)
+
+    def test_normalizes_token_spaced_latex_for_mathtext(self):
+        self.assertEqual(normalize_latex(r"x ^ { 3 } + 2 x ^ { 2 }"), r"x^{3}+ 2 x^{2}")
+        self.assertEqual(normalize_latex(r"\log _ { 2 } ( x )"), r"\log_{2}( x )")
+        self.assertEqual(normalize_latex(r"\int _ { 0 } ^ { 2 } x d x"), r"\int_{0}^{2}x d x")
+        self.assertEqual(normalize_latex(r"f ' ( 2 ) = 20"), r"f^{\prime}( 2 ) = 20")
 
     def test_places_multiple_algebra_lines_on_board(self):
         board = place_handwriting_lines(
